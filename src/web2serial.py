@@ -85,7 +85,7 @@ class Application(tornado.web.Application):
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("index.html", messages=ChatSocketHandler.cache)
+        self.render("index.html", devices=get_com_ports(), messages=ChatSocketHandler.cache)
 
 
 class PingHandler(tornado.web.RequestHandler):
@@ -97,13 +97,13 @@ class DevicesHandler(tornado.web.RequestHandler):
         self.write(json.dumps(get_com_ports()))
 
 
-class SerSocketHandler(tornado.web.RequestHandler):
-    def __init__(self):
-        self.alive = True
-        self.ser = None
+class SerSocketHandler(tornado.websocket.WebSocketHandler):
+    alive = True
+    ser = None
+        # logging.info("SerSocketHandler init - hash=%s, baudrate=%s" % (hash, baudrate))
 
-    def get(self, hash, baudrate):
-        self.write("hash=%s, baudrate=%s" % (hash, baudrate))
+    # def get(self, hash, baudrate):
+        # self.write("hash=%s, baudrate=%s" % (hash, baudrate))
 
     def open(self, hash, baudrate):
         """ Open serial device with baudrate """
@@ -120,13 +120,16 @@ class SerSocketHandler(tornado.web.RequestHandler):
 
     def on_message(self, message):
         """ Web -> Serial """
-        data = serial.to_bytes(message)
-        logging.info("got message. writing '%s' to serial device", repr(data))
+        # data = serial.to_bytes(message)
+        # logging.info("got message. writing '%s' to serial device", repr(message))
+        j = json.loads(message)
+        data = str(j["body"])
+        logging.info("web -> serial: %s" % repr(data))
         try:
             self.ser.write(data)
-        except socket.error, msg:
+        except Exception as e:
             # probably got disconnected
-            logger.error(msg)
+            logging.error(e)
 
     def on_close(self):
         logging.info("WebSocket closed. Closing serial...")
@@ -151,12 +154,13 @@ class SerSocketHandler(tornado.web.RequestHandler):
                     # escape outgoing data when needed (Telnet IAC (0xff) character)
                     # data = serial.to_bytes(self.rfc2217.escape(data))
                     self.write_message(data)
-            except socket.error, msg:
-                self.log.error('%s' % (msg,))
+                    logging.info("message from serial: %s" % repr(data))
+            except Exception as e:
+                logging.error('%s' % (e,))
                 # probably got disconnected
                 break
         self.alive = False
-        self.log.debug('reader thread terminated')
+        logging.debug('reader thread terminated')
 
 
 class ChatSocketHandler(tornado.websocket.WebSocketHandler):

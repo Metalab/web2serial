@@ -50,7 +50,7 @@ var updater = {
     socket: null,
 
     start: function() {
-        var url = "ws://" + location.host + "/chatsocket";
+        var url = "ws://" + location.host + "/device/5b1e44e8/baudrate/19200";
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
             updater.showMessage(JSON.parse(event.data));
