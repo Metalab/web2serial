@@ -23,6 +23,7 @@ import logging
 import os.path
 import uuid
 import json
+import threading
 
 import tornado.escape
 import tornado.ioloop
@@ -37,6 +38,13 @@ import serial.tools.list_ports
 define("port", default=8888, help="run on the given port", type=int)
 
 
+def get_com_ports():
+    """
+    Returns the currently available com ports
+    """
+    return sorted(serial.tools.list_ports.comports())
+
+
 class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
@@ -44,6 +52,7 @@ class Application(tornado.web.Application):
             (r"/ping", PingHandler),
             (r"/devices", DevicesHandler),
             (r"/chatsocket", ChatSocketHandler),
+            (r"/device/([^/]+)/baudrate/([^/]+)", SerSocketHandler),
         ]
 
         settings = dict(
@@ -67,6 +76,68 @@ class PingHandler(tornado.web.RequestHandler):
 class DevicesHandler(tornado.web.RequestHandler):
     def get(self):
         self.write(json.dumps(get_com_ports()))
+
+
+class SerSocketHandler(tornado.web.RequestHandler):
+    def __init__(self):
+        self.alive = True
+        self.ser = None
+
+    def get(self, deviceid, baudrate):
+        self.write("deviceid=%s, baudrate=%s" % (deviceid, baudrate))
+
+    def open(self, deviceid, baudrate):
+        """ Open serial device with baudrate """
+        logging.info("WebSocket opened - deviceid=%s, baudrate=%s" % (deviceid, baudrate))
+
+        self.ser = serial.Serial(deviceid, int(baudrate))
+        logging.info("WebSocket - Serial device opened")
+
+        self.alive = True
+        self.thread_read = threading.Thread(target=self.reader)
+        self.thread_read.setDaemon(True)
+        self.thread_read.setName('serial->socket')
+        self.thread_read.start()
+
+    def on_message(self, message):
+        """ Web -> Serial """
+        data = serial.to_bytes(message)
+        logging.info("got message. writing '%s' to serial device", repr(data))
+        try:
+            self.ser.write(data)
+        except socket.error, msg:
+            # probably got disconnected
+            logger.error(msg)
+
+    def on_close(self):
+        logging.info("WebSocket closed. Closing serial...")
+        self.alive = False
+        self.ser.close()
+        self.thread_read.join()
+        logging.info("Serial closed, reader thread quit.")
+
+    def reader(self):
+        """
+        loop forever and copy serial->socket
+        (via http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/tcp_serial_redirect.py)
+        """
+        logging.debug('reader thread started')
+        while self.alive:
+            try:
+                data = self.ser.read(1)              # read one, blocking
+                n = self.ser.inWaiting()             # look if there is more
+                if n:
+                    data = data + self.ser.read(n)   # and get as much as possible
+                if data:
+                    # escape outgoing data when needed (Telnet IAC (0xff) character)
+                    # data = serial.to_bytes(self.rfc2217.escape(data))
+                    self.write_message(data)
+            except socket.error, msg:
+                self.log.error('%s' % (msg,))
+                # probably got disconnected
+                break
+        self.alive = False
+        self.log.debug('reader thread terminated')
 
 
 class ChatSocketHandler(tornado.websocket.WebSocketHandler):
@@ -112,12 +183,6 @@ class ChatSocketHandler(tornado.websocket.WebSocketHandler):
         ChatSocketHandler.update_cache(chat)
         ChatSocketHandler.send_updates(chat)
 
-
-def get_com_ports():
-    """
-    Returns the currently available com ports
-    """
-    return sorted(serial.tools.list_ports.comports())
 
 
 def main(options, args):
