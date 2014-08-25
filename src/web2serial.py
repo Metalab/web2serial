@@ -24,6 +24,7 @@ import os.path
 import uuid
 import json
 import threading
+import hashlib
 
 import tornado.escape
 import tornado.ioloop
@@ -37,12 +38,30 @@ import serial.tools.list_ports
 
 define("port", default=8888, help="run on the given port", type=int)
 
+DEVICE_ID_HASH_LENGTH = 8
+
 
 def get_com_ports():
     """
     Returns the currently available com ports
     """
-    return sorted(serial.tools.list_ports.comports())
+    iterator = sorted(serial.tools.list_ports.comports())
+    return [(
+            hashlib.sha256(deviceid).hexdigest()[:DEVICE_ID_HASH_LENGTH],
+            deviceid, desc, hwid
+        ) for deviceid, desc, hwid in iterator]
+
+
+def open_serial_device_by_hash(hash, baudrate):
+    logging.info("open serial device by hash: %s" % hash)
+    for _hash, _deviceid, _desc, _hwid in get_com_ports():
+        if _hash == hash:
+            logging.info("serial device found for hash: %s" % _deviceid)
+            ser = serial.Serial(_deviceid, int(baudrate))
+            return ser
+
+    logging.error("serial device not found for hash %s" % hash)
+    return None
 
 
 class Application(tornado.web.Application):
@@ -83,14 +102,14 @@ class SerSocketHandler(tornado.web.RequestHandler):
         self.alive = True
         self.ser = None
 
-    def get(self, deviceid, baudrate):
-        self.write("deviceid=%s, baudrate=%s" % (deviceid, baudrate))
+    def get(self, hash, baudrate):
+        self.write("hash=%s, baudrate=%s" % (hash, baudrate))
 
-    def open(self, deviceid, baudrate):
+    def open(self, hash, baudrate):
         """ Open serial device with baudrate """
-        logging.info("WebSocket opened - deviceid=%s, baudrate=%s" % (deviceid, baudrate))
+        logging.info("WebSocket opened - hash=%s, baudrate=%s" % (hash, baudrate))
 
-        self.ser = serial.Serial(deviceid, int(baudrate))
+        self.ser = open_serial_device_by_hash(hash, baudrate)
         logging.info("WebSocket - Serial device opened")
 
         self.alive = True
