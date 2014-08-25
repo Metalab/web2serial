@@ -22,6 +22,7 @@ from pprint import pprint
 import logging
 import os.path
 import uuid
+import json
 
 import tornado.escape
 import tornado.ioloop
@@ -40,23 +41,32 @@ class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/", MainHandler),
+            (r"/ping", PingHandler),
+            (r"/devices", DevicesHandler),
             (r"/chatsocket", ChatSocketHandler),
         ]
 
         settings = dict(
             cookie_secret="asdasdas87D*A8a7sd8T@*2",
-            template_path=os.path.abspath(os.path.join(os.path.dirname(__file__), "templates")),
+            template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             xsrf_cookies=True,
         )
-        print settings
-        print os.path.dirname(__file__)
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("index.html", messages=ChatSocketHandler.cache)
+
+
+class PingHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write("pong")
+
+class DevicesHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.write(json.dumps(get_com_ports()))
 
 
 class ChatSocketHandler(tornado.websocket.WebSocketHandler):
