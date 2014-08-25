@@ -19,7 +19,7 @@ LGPLv3 (see `LICENSE`).
 web2serial library
 ==================
 
-Dependencies: [tornado](https://github.com/tornadoweb/tornado)
+Dependencies: [tornado](https://github.com/tornadoweb/tornado), [pyserial](http://pythonhosted.org/pyserial/)
 
 Port Number: 54321
 

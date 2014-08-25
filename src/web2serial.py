@@ -30,6 +30,9 @@ import tornado.web
 import tornado.websocket
 from tornado.options import define, options
 
+import serial
+import serial.tools.list_ports
+
 define("port", default=8888, help="run on the given port", type=int)
 
 
@@ -42,10 +45,12 @@ class Application(tornado.web.Application):
 
         settings = dict(
             cookie_secret="asdasdas87D*A8a7sd8T@*2",
-            template_path=os.path.join(os.path.dirname(__file__), "templates"),
+            template_path=os.path.abspath(os.path.join(os.path.dirname(__file__), "templates")),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
             xsrf_cookies=True,
         )
+        print settings
+        print os.path.dirname(__file__)
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
@@ -92,14 +97,24 @@ class ChatSocketHandler(tornado.websocket.WebSocketHandler):
             "body": parsed["body"],
             }
         chat["html"] = tornado.escape.to_basestring(
-            self.render_string("message.html", message=chat))
+           self.render_string("message.html", message=chat))
 
         ChatSocketHandler.update_cache(chat)
         ChatSocketHandler.send_updates(chat)
 
 
+def get_com_ports():
+    """
+    Returns the currently available com ports
+    """
+    return sorted(serial.tools.list_ports.comports())
+
+
 def main(options, args):
     tornado.options.parse_command_line()
+
+    logging.info("py2serial v%s" % __version__)
+    logging.info("Com ports: %s" % get_com_ports())
     logging.info("Starting server on port %s" % options.port)
 
     app = Application()
