@@ -1,36 +1,54 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="en">
   <head>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
-    <title>Tornado Chat Demo</title>
-    <link rel="stylesheet" href="{{ static_url("chat.css") }}" type="text/css"/>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>web2serial</title>
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="{{ static_url("bootstrap.min.css") }}" type="text/css"/>
+    <link rel="stylesheet" href="{{ static_url("bootstrap-theme.min.css") }}" type="text/css"/>
+    <link rel="stylesheet" href="{{ static_url("web2serial.css") }}" type="text/css"/>
   </head>
   <body>
-    <div id="body">
-      <div id="inbox">
-        {% for message in messages %}
-          {% include "message.html" %}
-        {% end %}
-      </div>
-      <div>
-          Devices: {{ devices }}
-      </div>
-      <div id="input">
-        <form action="/a/message/new" method="post" id="messageform">
-          <table>
-            <tr>
-              <td><input name="body" id="message" style="width:500px"/></td>
-              <td style="padding-left:5px">
-                <input type="submit" value="{{ _("Post") }}"/>
-                <input type="hidden" name="next" value="{{ request.path }}"/>
-                {% module xsrf_form_html() %}
-              </td>
-            </tr>
-          </table>
-        </form>
+    
+    <div class="container">
+      <h1>web2serial</h1>
+
+      <hr>
+
+      <p>
+        <div class="list-group" id="device-list">
+          <a href="javascript:refresh_device_list()" class="list-group-item list-group-item-info">Refresh Device List &nbsp; <span class="pull-right glyphicon glyphicon-refresh"></span></a>
+          <a href="javascript:setBaudrate()" class="list-group-item list-group-item-info">Baudrate: <span id="baudrate">9600</span> <span class="pull-right glyphicon glyphicon-pencil"></span></a>
+        </div>
+      </p>
+
+      <div id="comm" style="display:none;">
+        <hr>
+
+        <p>
+          <h4 id="device-name">Device Name</h4>
+          <p id="device-infos"></p>
+          <form class="form-inline" role="form" id="inputform">
+              <input type="text" class="form-control" id="input" placeholder="String to send" style="width:50%;">
+              <button type="button" onclick="sendMessage()" class="btn btn-default">Send</button>
+<!--               <span class="pull-right">
+                <button type="button" onclick="sendMessage()" class="btn btn-default btn-danger"><span class="glyphicon glyphicon-remove"></span></button>
+              </span>
+ -->          </form>
+        </p>
+
+        <p style="border:1px solid lightgray; padding:10px;" id="messages">
+        </p>
       </div>
     </div>
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.3/jquery.min.js" type="text/javascript"></script>
-    <script src="{{ static_url("chat.js") }}" type="text/javascript"></script>
+
+    <!-- Include all compiled plugins (below), or include individual files as needed -->
+    <script src="{{ static_url("jquery-1.3.min.js") }}" type="text/javascript"></script>
+    <script src="{{ static_url("bootstrap.min.js") }}" type="text/javascript"></script>
+    <script src="{{ static_url("web2serial.js") }}" type="text/javascript"></script>
   </body>
 </html>
+

@@ -30,8 +30,10 @@ $(document).ready(function() {
     updater.start();
 });
 
-function newMessage(form) {
-    var message = form.formToDict();
+function sendMessage() {
+    var message = {"msg": $("#input").val()};
+    console.log(message);
+
     updater.socket.send(JSON.stringify(message));
     form.find("input[type=text]").val("").select();
 }
@@ -50,19 +52,17 @@ var updater = {
     socket: null,
 
     start: function() {
-        var url = "ws://" + location.host + "/device/5b1e44e8/baudrate/19200";
+        var url = "ws://" + location.host + "/device/5b1e44e8/baudrate/9600";
         updater.socket = new WebSocket(url);
         updater.socket.onmessage = function(event) {
+            console.log(event.data);
             updater.showMessage(JSON.parse(event.data));
+            updater.showMessage(event.data);
         }
     },
 
     showMessage: function(message) {
-        var existing = $("#m" + message.id);
-        if (existing.length > 0) return;
-        var node = $(message.html);
-        node.hide();
+        var node = $(message);
         $("#inbox").append(node);
-        node.slideDown();
     }
 };

@@ -123,7 +123,7 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         # data = serial.to_bytes(message)
         # logging.info("got message. writing '%s' to serial device", repr(message))
         j = json.loads(message)
-        data = str(j["body"])
+        data = str(j["msg"])
         logging.info("web -> serial: %s" % repr(data))
         try:
             self.ser.write(data)
