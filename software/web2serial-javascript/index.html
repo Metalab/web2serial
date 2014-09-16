@@ -36,11 +36,16 @@
             console.log("websocket event: " + event.data);
             //$("#messages").html("> " + event.data + "<br>" + $("#messages").html());
         }
+
+        function sendMessage() {
+          socket.send(web2serial.jsonify("100 200"));
+        }
     </script>
   </head>
 
   <body onload="load()">
     <div id="devices">Devices: </div>
     <div id="output"></div>
+    <button onclick="sendMessage()">Send Message</button>
   </body>
 </html>

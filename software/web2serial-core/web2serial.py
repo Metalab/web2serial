@@ -114,6 +114,9 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
     alive = True
     ser = None
 
+    def check_origin(self, origin):
+        return True
+
     def open(self, hash, baudrate):
         """ 
         Websocket initiated a connection. Open serial device with baudrate and start reader thread. 
