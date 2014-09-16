@@ -8,26 +8,45 @@
   <style>#slider { margin: 10px; }	</style>
   <script src="//code.jquery.com/jquery-1.10.2.js"></script>
   <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+  <script src="web2serial.js"></script>
+
+
+
 </head>
 <body>
-
+<h1>Openmindmachine Web2Serial Demo</h1>
 <div id="controls"> 
-<table align=center border=0>
+<table align=center border=0 cellspacing=10>
 <tr>
-<td><div id="slider1_display">1</div><td/>
-<td><div id="slider2_display">1</div><td/>
+<td align=center >LEFT<td/>
+<td align=center >RIGHT<td/>
 </tr>
 <tr>
-<td><div id="slider1"></div><td/>
-<td><div id="slider2"></div><td/>
+<td align=center ><div id="slider1_display">1</div><td/>
+<td align=center ><div id="slider2_display">1</div><td/>
+</tr>
+<tr>
+<td align=center ><div id="slider1" tabindex=1></div><td/>
+<td align=center ><div id="slider2" tabindex=2></div><td/>
 </tr>
 </table>
 </div> 
 
 
+
+<div id="socket_response"></div>
+
+
+
+
 <script>
-$( "#slider1" ).slider({ min:1, max: 800,  slide: slider_slided,  change: slider_changed});
-$( "#slider2" ).slider({ min:1, max: 800,  slide: slider_slided,  change: slider_changed});
+
+
+
+
+
+$( "#slider1" ).slider({ min:1, max: 200,  slide: slider_slided,  change: slider_changed, orientation: "vertical"});
+$( "#slider2" ).slider({ min:1, max: 200,  slide: slider_slided,  change: slider_changed, orientation: "vertical"});
 
 
 
@@ -45,7 +64,7 @@ function slider_changed(event,ui)
 current_slider = $(ui.handle).parent().attr("id")
 eval(current_slider+"_value=ui.value;");
 
-send_serial()
+send_serial();
 
 }
 
@@ -53,7 +72,81 @@ function slider_slided(event,ui)
 {
 current_slider = $(ui.handle).parent().attr("id");
 $("#"+current_slider+"_display").html(ui.value);
+
+
+// instant update on slide .. this can be archived by using cursor keys instead of mouse/touch
+//eval(current_slider+"_value=ui.value;");
+//send_serial();
+
+
 }
+
+
+
+
+function send_serial()
+{
+
+    var s1 = slider1_value+"";
+    while (s1.length < 3) s1 = "0" + s1;
+
+    var s2 = slider2_value+"";
+    while (s2.length < 3) s2 = "0" + s2;
+
+
+    var serialstring = s1 + " " + s2+"\n";
+ 
+
+ console.log("Sending: " + serialstring);
+
+socket.send(web2serial.jsonify(serialstring));
+
+}
+
+
+
+
+
+
+
+$( document ).ready(load());
+
+var socket;
+
+function load() {
+    web2serial.get_devices(show_devices);
+}
+
+function show_devices(device_list) {
+    // Callback after web2serial.get_devices
+    //$("#devices").append(JSON.stringify(device_list));
+
+    // Open WebSocket to last device in the list
+    var hash = device_list[device_list.length - 1].hash;
+    socket = web2serial.open_connection(hash, 9600,  on_message);
+
+    // Handle error event
+    socket.onerror = function(event) {
+      console.log("onerror");
+      console.log(event);
+    }
+
+    // Handle close event
+    socket.onclose = function(event) {
+      console.log("onclose");
+      console.log(event);
+    }
+
+    // Use `socket.send(web2serial.jsonify(data))` to send stuff to the serial connection
+}
+
+function on_message(event) {
+      console.log("websocket event: " + event.data);
+      $("#socket_response").html(event.data);
+  }
+
+
+
 
 
 
@@ -62,5 +155,9 @@ $("#"+current_slider+"_display").html(ui.value);
 
 </script>
  
+
+
+
+
 </body>
 </html>

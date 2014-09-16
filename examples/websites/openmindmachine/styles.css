@@ -5,6 +5,18 @@ body {
 }
 
 
+h1 {
+    width: 550px;
+    height: 80px;
+
+    position: absolute;
+    top:0;
+    left: 0;
+    right: 0;
+
+    margin: auto;
+}
+
 #controls {
     width: 500px;
     height: 400px;
@@ -20,11 +32,13 @@ body {
 
 
 #slider1,#slider2 {
-
- .height:100px;
-width:100px; 
+height:100px;
+width:12px;
 border:1px solid black;
 }
+
+
+
 
 
 #slider1_display, #slider2_display {
@@ -33,7 +47,9 @@ text-align: center;
 vertical-align: middle;
 line-height: 30px;
 
-margin: auto;
+
+margin:auto;
+
 border:1px solid black;
 border-radius:10px;
 width:50px;
@@ -41,3 +57,15 @@ height: 30px;
 
 }
 
+
+#socket_response {
+    width: 500px;
+    height: 30px;
+
+    position: absolute;
+    top:10px;
+    right: 10px;
+
+border:1px solid red;
+
+}
