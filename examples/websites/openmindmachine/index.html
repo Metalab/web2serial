@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>slider demo</title>
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.11.1/themes/smoothness/jquery-ui.css">
+  <link rel="stylesheet" href="./styles.css">
+  <style>#slider { margin: 10px; }	</style>
+  <script src="//code.jquery.com/jquery-1.10.2.js"></script>
+  <script src="//code.jquery.com/ui/1.11.1/jquery-ui.js"></script>
+</head>
+<body>
+
+<div id="controls"> 
+<table align=center border=0>
+<tr>
+<td><div id="slider1_display">1</div><td/>
+<td><div id="slider2_display">1</div><td/>
+</tr>
+<tr>
+<td><div id="slider1"></div><td/>
+<td><div id="slider2"></div><td/>
+</tr>
+</table>
+</div> 
+
+
+<script>
+$( "#slider1" ).slider({ min:1, max: 800,  slide: slider_slided,  change: slider_changed});
+$( "#slider2" ).slider({ min:1, max: 800,  slide: slider_slided,  change: slider_changed});
+
+
+
+
+slider1_value=1;
+slider2_value=1;
+
+
+
+
+
+
+function slider_changed(event,ui)
+{
+current_slider = $(ui.handle).parent().attr("id")
+eval(current_slider+"_value=ui.value;");
+
+send_serial()
+
+}
+
+function slider_slided(event,ui)
+{
+current_slider = $(ui.handle).parent().attr("id");
+$("#"+current_slider+"_display").html(ui.value);
+}
+
+
+
+
+
+
+</script>
+ 
+</body>
+</html>
