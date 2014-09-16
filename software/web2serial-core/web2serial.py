@@ -207,7 +207,7 @@ def start(port):
     # Initial output 
     logging.info("web2serial.py v%s" % __version__)
     logging.info("Com ports: %s" % get_com_ports())
-    logging.info("Starting server on port %s" % port)
+    logging.info("Listening on http://0.0.0.0:%s" % port)
 
     # Start of tornado web application, and ioloop blocking method
     app = Application()

@@ -22,7 +22,7 @@ Just install the dependencies [tornado](https://github.com/tornadoweb/tornado) a
     
     # Download and start web2serial
     $ git clone https://github.com/Metalab/web2serial.git
-    $ cd web2serial/web2serial
+    $ cd web2serial/web2serial-core/
     $ python web2serial.py
     
 Now you can access the built-in web interface at http://0.0.0.0:54321 and talk with your serial devices.

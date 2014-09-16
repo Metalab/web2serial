@@ -1,5 +1,5 @@
 /**
- * web2serial JavaScript implementation
+ * web2serial JavaScript Client
  *
  * Requires jQuery
  *
@@ -23,25 +23,38 @@
  *
  */
 
+var Device = function(hash, device, desc, hwinfo) {
+    this.hash = hash;
+    this.device = device;
+    this.desc = desc;
+    this.hwinfo = hwinfo;
+}
+
 var Web2SerialSocket = function(device_hash, baudrate) {
     // you should overwrite this method
-    this.onmessage = function(str) {}
+    this.onmessage = function(str) {};
 
     // overwrite these methods if you want
-    this.onopen = function(event) {}
-    this.onerror = function(event) {}
-    this.onclose = function(event) {}
+    this.onopen = function(event) {};
+    this.onerror = function(event) {};
+    this.onclose = function(event) {};
 
-    // use `socket.send(bytestring)` this to send bytes to the serial device
+    // use `socket.send(bytestring)` to send bytes to the serial device
     this.send = function(bytestring) {
         msg = JSON.stringify({ "msg": bytestring });
         console.log(msg);
         this.socket.send(msg);
     }
 
+    this.device_string = function() {
+        return web2serial.device_string(this.device_hash);
+    }
+
     // internals
     this.device_hash = device_hash;
+    this.device = web2serial.device_by_hash(device_hash);
     this.baudrate = baudrate;
+    this.str = "Device(" + device_hash + ", " + this.device.device + ", " + this.device.desc + ", " + this.device.hwinfo + ", " + baudrate + " baud)";
 
     this.url = "ws://0.0.0.0:54321/device/" + device_hash + "/baudrate/" + baudrate;
     console.log(this.url);
@@ -54,13 +67,15 @@ var Web2SerialSocket = function(device_hash, baudrate) {
     this.socket.onmessage = function(event) {
         console.log("websocket message");
         console.log(event);
+
         o = JSON.parse(event.data);
         if ("error" in o) {
             parent.onerror(o);
         } else if ("msg" in o) {
             parent.onmessage(o.msg);
         } else {
-            console.log()
+            console.log("onmessage - did not know what to do:");
+            console.log(o);
         }
     };
 
@@ -91,13 +106,7 @@ var web2serial = {
             devices = new Array();
             var _devices = JSON.parse(data);
             for (var i=0; i<_devices.length; i++) {
-                var device = { 
-                    "hash":  _devices[i][0],
-                    "device": _devices[i][1],
-                    "desc": _devices[i][2],
-                    "hwinfo": _devices[i][3],
-                }
-                devices.push(device);
+                devices.push(new Device(_devices[i][0], _devices[i][1], _devices[i][2], _devices[i][3]));
             }
             callback(devices);
         });
@@ -107,15 +116,10 @@ var web2serial = {
         return new Web2SerialSocket(device_hash, baudrate);
     },
 
-    get_device_by_hash: function(device_hash) {
+    device_by_hash: function(device_hash) {
         for (var i=0; i<devices.length; i++) {
             if (devices[i].hash == device_hash)
                 return devices[i];
         }
     },
-
-    device_string: function(device_hash) {
-        var device = this.get_device_by_hash(device_hash);
-        return "Device(" + device.hash + ", " + device.device + ", " + device.desc + ", " + device.hwinfo + ")";
-    }
 }

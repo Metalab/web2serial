@@ -24,7 +24,7 @@ function connect(device_hash) {
     }
 
     socket.onopen = function(data) {
-        add_message("<b>opened: " + web2serial.device_string(this.device_hash) + "</b>");
+        add_message("<b>opened: " + this.str + "</b>");
     }
 
     socket.onerror = function(data) {
