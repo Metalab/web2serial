@@ -114,6 +114,9 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
     alive = True
     ser = None
 
+    def check_origin(self, origin):
+        return True
+
     def open(self, hash, baudrate):
         """ 
         Websocket initiated a connection. Open serial device with baudrate and start reader thread. 
@@ -126,6 +129,7 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
             logging.exception(e)
             message_for_websocket = { "error": str(e) }
             self.write_message(json.dumps(message_for_websocket))
+            self.close()
             return
 
         # Start the thread which reads for serial input 
@@ -153,6 +157,9 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         except Exception as e:
             # probably got disconnected
             logging.error(e)
+            message_for_websocket = { "error": str(e) }
+            self.write_message(json.dumps(message_for_websocket))
+            self.close()
 
     def on_close(self):
         """ Close serial and quit reader thread """
@@ -183,9 +190,12 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
                     logging.info("message from serial to websocket: %s" % repr(message))
                     self.write_message(json.dumps(message))
             except Exception as e:
-                logging.error('%s' % (e,))
                 # probably got disconnected
+                logging.error('%s' % (e,))
+                message_for_websocket = { "error": str(e) }
+                self.write_message(json.dumps(message_for_websocket))
                 break
+                
         self.alive = False
         logging.debug('reader thread terminated')
 

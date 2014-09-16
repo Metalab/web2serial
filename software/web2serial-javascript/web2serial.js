@@ -8,7 +8,7 @@
  *     web2serial.get_devices(callback) ... get list of devices
  *
  *     // Get a WebSocket connection to a serial device:
- *     ws_conn = web2serial.open_connection(device-hash, baudrate, onmessage_callback)
+ *     websocket = web2serial.open_connection(device-hash, baudrate)
  *
  * For the WebSocket API see https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
  *
@@ -22,11 +22,73 @@
  * method `web2serial.jsonify(str)` to build the final JSON string.
  *
  */
+
+var Web2SerialSocket = function(device_hash, baudrate) {
+    // you should overwrite this method
+    this.onmessage = function(str) {}
+
+    // overwrite these methods if you want
+    this.onopen = function(event) {}
+    this.onerror = function(event) {}
+    this.onclose = function(event) {}
+
+    // use `socket.send(bytestring)` this to send bytes to the serial device
+    this.send = function(bytestring) {
+        msg = JSON.stringify({ "msg": bytestring });
+        console.log(msg);
+        this.socket.send(msg);
+    }
+
+    // internals
+    this.device_hash = device_hash;
+    this.baudrate = baudrate;
+
+    this.url = "ws://0.0.0.0:54321/device/" + device_hash + "/baudrate/" + baudrate;
+    console.log(this.url);
+
+    this.socket = new WebSocket(this.url);
+
+    var parent = this;
+
+    // Message from web2serial service: unwrap JSON
+    this.socket.onmessage = function(event) {
+        console.log("websocket message");
+        console.log(event);
+        o = JSON.parse(event.data);
+        if ("error" in o) {
+            parent.onerror(o);
+        } else if ("msg" in o) {
+            parent.onmessage(o.msg);
+        } else {
+            console.log()
+        }
+    };
+
+    this.socket.onopen = function(event) {
+        console.log(event);
+        parent.onopen(event);
+    }
+
+    // Handle error event
+    this.socket.onerror = function(event) {
+        console.log(event);
+        parent.onerror(event);
+    };
+
+    // Handle close event
+    this.socket.onclose = function(event) {
+        console.log(event);
+        parent.onclose(event);
+    };
+}
+
+var devices;
+
 var web2serial = {
     get_devices: function(callback) {
         $.get("http://0.0.0.0:54321/devices", function( data ) {
             console.log(data);
-            var devices = new Array();
+            devices = new Array();
             var _devices = JSON.parse(data);
             for (var i=0; i<_devices.length; i++) {
                 var device = { 
@@ -41,16 +103,19 @@ var web2serial = {
         });
     },
 
-    open_connection: function(device_hash, baudrate, onmessage_callback) {
-        var url = "ws://0.0.0.0:54321/device/" + device_hash + "/baudrate/" + baudrate;
-        console.log(url);
-
-        socket = new WebSocket(url);
-        socket.onmessage = onmessage_callback;
-        return socket;
+    open_connection: function(device_hash, baudrate) {
+        return new Web2SerialSocket(device_hash, baudrate);
     },
 
-    jsonify: function(str) {
-        return JSON.stringify({ "msg": str });
+    get_device_by_hash: function(device_hash) {
+        for (var i=0; i<devices.length; i++) {
+            if (devices[i].hash == device_hash)
+                return devices[i];
+        }
+    },
+
+    device_string: function(device_hash) {
+        var device = this.get_device_by_hash(device_hash);
+        return "Device(" + device.hash + ", " + device.device + ", " + device.desc + ", " + device.hwinfo + ")";
     }
 }
