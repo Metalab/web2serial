@@ -14,13 +14,20 @@
   </head>
 
   <body>
-    <h1>web2serial.js demo</h1>
+    <div class="container">
+      <h1>web2serial.js demo</h1>
 
-    <div id="devices"></div>
-    <div id="compose">
-        <input type="text" id="text" />
-        <button onclick="send()">Send Message</button>
+      <div id="devices">
+          <h2>Devices <a href="javascript:refresh_devices()">&#8635;</a></h2>
+          <div id="devices-list"></div>
+      </div>
+      <div id="compose">
+          <form class="form-inline" role="form" id="inputform">
+              <input type="text" class="form-control" id="input" placeholder="String to send" style="width:50%;">
+              <button type="button" onclick="send()" class="btn btn-default">Send</button>
+          </form>
+      </div>
+      <div id="messages"></div>
     </div>
-    <div id="messages"></div>
   </body>
 </html>

@@ -3,9 +3,10 @@ body {
 }
 
 #devices, #messages, #compose {
-    border: 1px solid gray;
+    border: 1px solid lightgray;
     padding:20px;
     margin:20px 0px;
+    border-radius: 4px;
 }
 
 #devices button {

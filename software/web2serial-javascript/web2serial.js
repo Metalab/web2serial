@@ -46,17 +46,12 @@ var Web2SerialSocket = function(device_hash, baudrate) {
         this.socket.send(msg);
     }
 
-    this.device_string = function() {
-        return web2serial.device_string(this.device_hash);
-    }
-
     // internals
-    this.device_hash = device_hash;
     this.device = web2serial.device_by_hash(device_hash);
     this.baudrate = baudrate;
-    this.str = "Device(" + device_hash + ", " + this.device.device + ", " + this.device.desc + ", " + this.device.hwinfo + ", " + baudrate + " baud)";
+    this.str = "Device(" + this.device.hash + ", " + this.device.device + ", " + this.device.desc + ", " + this.device.hwinfo + ")";
 
-    this.url = "ws://0.0.0.0:54321/device/" + device_hash + "/baudrate/" + baudrate;
+    this.url = "ws://0.0.0.0:54321/device/" + this.device.hash + "/baudrate/" + baudrate;
     console.log(this.url);
 
     this.socket = new WebSocket(this.url);
