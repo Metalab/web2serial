@@ -96,7 +96,7 @@ class MainHandler(tornado.web.RequestHandler):
         self.render("index.html", devices=get_com_ports())
 
 
-class PingHandler(tornado.web.RequestHandler):
+class PingHandler(SharedRequestHandler):
     def get(self):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.write("pong")

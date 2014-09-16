@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -8,36 +8,40 @@
     <link rel="stylesheet" href="imports/bootstrap.min.css" type="text/css"/>
     <link rel="stylesheet" href="demo.css" type="text/css"/>
 
-    <script src="imports/jquery-1.3.min.js"></script>
+    <script src="imports/jquery-2.1.1.min.js"></script>
     <script src="imports/web2serial.js"></script>
     <script src="demo.js"></script>
-  </head>
+</head>
 
-  <body>
+<body>
     <div class="container">
-      <h1><a href="http://github.com/metalab/web2serial">web2serial.js</a></h1>
+        <div id="alert-not-running" class="alert alert-danger" role="alert">web2serial does not seem to be running; please start the Python daemon (<a href="http://github.com/metalab/web2serial">more infos</a>)</div>
+        <div id="alert-running" class="alert alert-success" role="alert">web2serial is up and running (<a href="http://github.com/metalab/web2serial">more infos</a>)</div>
 
-      <div id="devices">
-        <div class="row">
-          <div class="col-md-6">
-            <h2>Serial Devices <a href="javascript:refresh_devices()">&#8635;</a></h2>
-            <div id="devices-list"></div>
-          </div>
-          <div class="col-md-6">
-            <h2>Baudrate</h2>
-            <input type="text" class="form-control" id="input-baudrate" placeholder="baud" style="width:50%;">
-          </div>
-      </div>
-      </div>
+        <h1>web2serial.js demo</h1>
 
-      <div id="compose">
-          <form class="form-inline" role="form" id="inputform">
-              <input type="text" class="form-control" id="input" placeholder="bytes to send" style="width:50%;" disabled>
-              <button type="button" id="input-btn" onclick="send()" class="btn btn-default" disabled>Send</button>
-          </form>
-      </div>
+        <div id="devices">
+            <div class="row">
+                <div class="col-md-6">
+                <h2>Serial Devices <a href="javascript:refresh_devices()">&#8635;</a></h2>
+                <div id="devices-list"></div>
+                </div>
 
-      <div id="messages"></div>
+                <div class="col-md-6">
+                    <h2>Baudrate</h2>
+                    <input type="text" class="form-control" id="input-baudrate" placeholder="baud" style="width:50%;">
+                </div>
+            </div>
+        </div>
+
+        <div id="compose">
+            <form class="form-inline" role="form" id="inputform">
+                <input type="text" class="form-control" id="input" placeholder="bytes to send" style="width:50%;" disabled>
+                <button type="button" id="input-btn" onclick="send()" class="btn btn-default" disabled>Send</button>
+            </form>
+        </div>
+
+        <div id="messages"></div>
     </div>
-  </body>
+</body>
 </html>

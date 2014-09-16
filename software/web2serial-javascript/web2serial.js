@@ -31,7 +31,7 @@ var Device = function(hash, device, desc, hwinfo) {
 }
 
 var Web2SerialSocket = function(device_hash, baudrate) {
-    // you should overwrite this method
+    // you should overwrite this method to receive data
     this.onmessage = function(str) {};
 
     // overwrite these methods if you want
@@ -95,6 +95,16 @@ var Web2SerialSocket = function(device_hash, baudrate) {
 var devices;
 
 var web2serial = {
+    is_alive: function(callback) {
+        // returns whether daemon is running on this client computer
+        jqxhr = $.get("http://0.0.0.0:54321/ping", function( data ) {
+            callback(true);
+        }).error(function(e) { 
+            console.log(e); 
+            callback(false);
+        });
+    },
+
     get_devices: function(callback) {
         $.get("http://0.0.0.0:54321/devices", function( data ) {
             console.log(data);

@@ -3,14 +3,23 @@ var baudrate_default = 9600;
 
 // Stuff to do when website is loaded
 $(function() {
-    // When website is loaded, get the list of devices
-    refresh_devices();
+    // Catch form input when user presses enter
+    $("#inputform").submit(function() {
+        send();
+        return false;
+    });
 
+    // Set default baudrate
     $("#input-baudrate").val(baudrate_default);
 
-    // Catch form input when user presses enter
-    $("#inputform").live("submit", function() {
-        return send();
+    // Check whether web2serial-core is running
+    web2serial.is_alive(function(is_alive) {
+        if (is_alive) {
+            $("#alert-running").show();
+            refresh_devices();
+        } else {
+            $("#alert-not-running").show();
+        }
     });
 });
 
@@ -19,7 +28,7 @@ function refresh_devices() {
     web2serial.get_devices(function(device_list) {
         $("#devices-list").html("");
         for (var i=0; i<device_list.length; i++) {
-            $("#devices-list").append("<div class='device'><button type='button' id='device-" + device_list[i].hash + "' class='btn btn-default' onclick=\"connect('" + device_list[i].hash + "')\">" + device_list[i].device + " (" + device_list[i].desc + ", " + device_list[i].hwinfo + ")</button></div>");
+            $("#devices-list").append("<div class='device'><button type='button' id='device-" + device_list[i].hash + "' class='btn btn-default' onclick=\"connect('" + device_list[i].hash + "')\" title='click to connect'>" + device_list[i].device + " (" + device_list[i].desc + ", " + device_list[i].hwinfo + ")</button></div>");
         }
     });    
 }
