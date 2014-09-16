@@ -84,6 +84,13 @@ def open_serial_device_by_hash(hash, baudrate):
 
 
 # Handlers
+class SharedRequestHandler(tornado.web.RequestHandler):
+    def options(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header('Access-Control-Allow-Methods', "GET, POST, OPTIONS")
+        self.set_header('Access-Control-Allow-Headers', "X-Requested-With")
+
+
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         self.render("index.html", devices=get_com_ports())
@@ -91,10 +98,12 @@ class MainHandler(tornado.web.RequestHandler):
 
 class PingHandler(tornado.web.RequestHandler):
     def get(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
         self.write("pong")
 
-class DevicesHandler(tornado.web.RequestHandler):
+class DevicesHandler(SharedRequestHandler):
     def get(self):
+        self.set_header("Access-Control-Allow-Origin", "*")
         self.write(json.dumps(get_com_ports()))
 
 
