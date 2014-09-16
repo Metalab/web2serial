@@ -1,37 +1,43 @@
 var socket;
+var baudrate = 9600;
 
 $(function() {
     // When website is loaded, get the list of devices
-    web2serial.get_devices(show_devices);
+    web2serial.get_devices(function(device_list) {
+        for (var i=0; i<device_list.length; i++) {
+            $("#devices").append("<p><button onclick=\"connect('" + device_list[i].hash + "')\">" + JSON.stringify(device_list[i]) + "</button></p>");
+        }
+    });
 });
 
-function show_devices(device_list) {
-    // Callback after web2serial.get_devices
-    $("#devices").append(JSON.stringify(device_list));
-
-    // Open WebSocket to last device in the list
-    var hash = device_list[device_list.length - 1].hash;
+// Helper to add messages to the html document
+function add_message(str) {
+    $("#messages").html("<p>" + str + "</p>" + $("#messages").html());
 }
 
-function connect_device(device_hash) {
-    socket = web2serial.open_connection(device_hash, 9600);
+// Connect to a specific serial device
+function connect(device_hash) {
+    socket = web2serial.open_connection(device_hash, baudrate);
 
-    // Handle received messages from the serial connection
-    socket.onmessage = function onmessage(event) {
-        console.log("websocket event: " + event.data);
+    socket.onmessage = function(data) {
+        add_message("msg> " + data);
     }
 
-    // Handle error event
-    socket.onerror = function(event) {
-        console.log("onerror: " + event);
+    socket.onopen = function(data) {
+        add_message("<b>opened: " + web2serial.device_string(this.device_hash) + "</b>");
     }
 
-    // Handle close event
-    socket.onclose = function(event) {
-        console.log("onclose" + event);
+    socket.onerror = function(data) {
+        add_message("error> " + JSON.stringify(data));
+    }
+
+    socket.onclose = function(data) {
+        add_message("close>");
     }
 }
 
 function send() {
-    socket.send(web2serial.jsonify("100 200"));
+    var msg = $("#text").val();
+    socket.send(msg);
+    add_message("< " + msg);
 }

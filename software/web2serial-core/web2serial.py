@@ -129,6 +129,7 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
             logging.exception(e)
             message_for_websocket = { "error": str(e) }
             self.write_message(json.dumps(message_for_websocket))
+            self.close()
             return
 
         # Start the thread which reads for serial input 
@@ -158,6 +159,7 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
             logging.error(e)
             message_for_websocket = { "error": str(e) }
             self.write_message(json.dumps(message_for_websocket))
+            self.close()
 
     def on_close(self):
         """ Close serial and quit reader thread """

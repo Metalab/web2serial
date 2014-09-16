@@ -1,13 +1,26 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
   <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="imports/bootstrap.min.css" type="text/css"/>
+    <link rel="stylesheet" href="demo.css" type="text/css"/>
+
     <script src="imports/jquery-1.3.min.js"></script>
     <script src="imports/web2serial.js"></script>
     <script src="demo.js"></script>
   </head>
 
   <body>
-    <div id="devices">Devices: </div>
-    <div id="output"></div>
-    <button onclick="send()">Send Message</button>
+    <h1>web2serial.js demo</h1>
+
+    <div id="devices"></div>
+    <div id="compose">
+        <input type="text" id="text" />
+        <button onclick="send()">Send Message</button>
+    </div>
+    <div id="messages"></div>
   </body>
 </html>
