@@ -12,3 +12,7 @@ body {
 #devices button {
     margin: 10px 0px;
 }
+
+#devices h2 {
+    margin-top: 0px;
+}

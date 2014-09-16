@@ -91,6 +91,8 @@ Inspirations
 TODO
 ====
 
+* web2serial.js
+  * Detect if web2serial-core is not running
 * Internal website GUI design
 * Wrapper: Service, GUI
 * Installer, Uninstaller

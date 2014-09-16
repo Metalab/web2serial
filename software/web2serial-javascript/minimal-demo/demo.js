@@ -1,15 +1,20 @@
 var socket;
-var baudrate = 9600;
+var baudrate_default = 9600;
 
+// Stuff to do when website is loaded
 $(function() {
     // When website is loaded, get the list of devices
     refresh_devices();
 
+    $("#input-baudrate").val(baudrate_default);
+
+    // Catch form input when user presses enter
     $("#inputform").live("submit", function() {
         return send();
     });
 });
 
+// Refresh list of devices
 function refresh_devices() {
     web2serial.get_devices(function(device_list) {
         $("#devices-list").html("");
@@ -28,28 +33,38 @@ function add_message(str) {
 function connect(device_hash) {
     // Update UI
     $(".device button").each(function() { $(this).removeClass().addClass("btn btn-default"); });
-    $("#device-" + device_hash).addClass("btn-warning");
+    $("#input").attr("disabled", "disabled");
+    $("#input-btn").attr("disabled", "disabled");
 
     // Create a Web2Serial WebSocket Connection
+    var baudrate = $("#input-baudrate").val();
     socket = web2serial.open_connection(device_hash, baudrate);
     socket.onmessage = function(data) {
-        add_message("<div class='alert alert-info' role='alert'>received: " + this.data + "</div>");
+        // Incoming bytes from the serial device
+        add_message("<div class='alert alert-info' role='alert'>received: " + data + "</div>");
     };
     socket.onopen = function(data) {
+        // Connection has successfully opened
         add_message("<div class='alert alert-success' role='alert'>opened: " + this.str + ", " + this.baudrate + " baud</div>");
         $("#device-" + device_hash).removeClass().addClass("btn btn-success");
-        $("#input").val("").select();
+        $("#input").removeAttr("disabled");
+        $("#input-btn").removeAttr("disabled");
+        $("#input").select();
     };
     socket.onerror = function(data) {
+        // Error
         add_message("<div class='alert alert-danger' role='alert'>error: " + JSON.stringify(data) + "</div>");
         $("#device-" + device_hash).removeClass().addClass("btn btn-danger");
     };
     socket.onclose = function(data) {
+        // Connection closed
         add_message("<div class='alert alert-info' role='alert'>closed: " + this.str + "</div>");
+        $("#input").attr("disabled", "disabled");
+        $("#input-btn").attr("disabled", "disabled");
     };
 }
 
-// Send bytes to the serial device via form
+// Send message from input field to the serial device
 function send() {
     var msg = $("#input").val();
     socket.send(msg);
