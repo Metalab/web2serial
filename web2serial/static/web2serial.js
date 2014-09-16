@@ -52,6 +52,7 @@ function refresh_device_list() {
     device_list_clear();
 
     $.get("/devices", function( data ) {
+        console.log(data);
         devices = new Array();
         var _devices = JSON.parse(data);
         for (var i=0; i<_devices.length; i++) {

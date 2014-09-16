@@ -4,32 +4,54 @@ web2serial
 Proxy from web to serial, to flash devices and other fun things.
 
 
-Authors & Contributors
-======================
+Getting up and running
+--------
 
-metachris, overflo
+Just install the dependencies [tornado](https://github.com/tornadoweb/tornado) and [pyserial](http://pythonhosted.org/pyserial/), get a copy of the code and run it.
 
+    # Install Python modules tornado and py2serial
+    $ sudo easy_install tornado
+    $ sudo easy_install py2serial
+    
+    # Download and start web2serial
+    $ git clone https://github.com/Metalab/web2serial.git
+    $ cd web2serial/web2serial
+    $ python web2serial.py
+    
+Now you can access the built-in web interface at http://0.0.0.0:54321.
 
-License
-=======
-
-LGPLv3 (see `LICENSE`).
-
-
-web2serial library
-==================
-
-Dependencies: [tornado](https://github.com/tornadoweb/tornado), [pyserial](http://pythonhosted.org/pyserial/)
-
-Port Number: 54321
 
 REST Interface
+-------
 
-    GET /ping         Heartbeat, Check if exists
-    GET /devices      Returns list of devices
+Heartbeat and check if web2serial is running
 
-    SCK /device/<device-id>/open/<baudrate>    Websocket Address for opening a device by id (with baudrate)
+    GET /ping
+    
+    Returns 'pong' (200 OK)
 
+Get a device list
+
+    GET /devices
+
+    Returns JSON array of devices (200 OK)    
+    [[hash, device string, desc, hwid], ...]
+
+Websocket for web <--> serial communication
+
+    SCK /device/<device-hash>/open/<baudrate>
+    
+    Websocket address for opening a device by hash with a specific baudrate
+
+
+Example
+-------
+
+The `web2serial` daemon contains an example web interface. You can access it by default with any web browser at http://0.0.0.0:54321.
+
+
+JavaScript Websocket Examples
+=============================
 
 jQuery GET example (http://api.jquery.com/jquery.get/):
 
@@ -64,5 +86,20 @@ Inspirations
 
 
 TODO
+====
 
-* Error handling
+* Internal website GUI design
+* Wrapper: Service, GUI
+* Installer, Uninstaller
+
+
+Authors & Contributors
+======================
+
+metachris, overflo
+
+
+License
+=======
+
+LGPLv3 (see `LICENSE`)
