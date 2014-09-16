@@ -8,7 +8,7 @@
  *     web2serial.get_devices(callback) ... get list of devices
  *
  *     // Get a WebSocket connection to a serial device:
- *     ws_conn = web2serial.open_connection(device-hash, baudrate, onmessage_callback)
+ *     websocket = web2serial.open_connection(device-hash, baudrate)
  *
  * For the WebSocket API see https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
  *
@@ -22,6 +22,8 @@
  * method `web2serial.jsonify(str)` to build the final JSON string.
  *
  */
+
+// TODO: Web2Serial
 var web2serial = {
     get_devices: function(callback) {
         $.get("http://0.0.0.0:54321/devices", function( data ) {
@@ -41,12 +43,12 @@ var web2serial = {
         });
     },
 
-    open_connection: function(device_hash, baudrate, onmessage_callback) {
+    open_connection: function(device_hash, baudrate) {
         var url = "ws://0.0.0.0:54321/device/" + device_hash + "/baudrate/" + baudrate;
         console.log(url);
 
         socket = new WebSocket(url);
-        socket.onmessage = onmessage_callback;
+        socket.web2serial 
         return socket;
     },
 

@@ -156,6 +156,8 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         except Exception as e:
             # probably got disconnected
             logging.error(e)
+            message_for_websocket = { "error": str(e) }
+            self.write_message(json.dumps(message_for_websocket))
 
     def on_close(self):
         """ Close serial and quit reader thread """
@@ -186,9 +188,12 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
                     logging.info("message from serial to websocket: %s" % repr(message))
                     self.write_message(json.dumps(message))
             except Exception as e:
-                logging.error('%s' % (e,))
                 # probably got disconnected
+                logging.error('%s' % (e,))
+                message_for_websocket = { "error": str(e) }
+                self.write_message(json.dumps(message_for_websocket))
                 break
+                
         self.alive = False
         logging.debug('reader thread terminated')
 
