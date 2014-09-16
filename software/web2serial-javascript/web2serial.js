@@ -5,15 +5,14 @@
  *
  * Usage:
  *
- *     web2serial.devices(callback) ... get list of devices
+ *     web2serial.get_devices(callback) ... get list of devices
  *
- *     // Opening a connection to a serial device
- *     conn = web2serial.connect(device-hash, baudrate, onmessage-callback)
- *     conn.sendMessage(bytes-for-serial-device)
+ *     // Get a WebSocket connection to a serial device:
+ *     ws_conn = web2serial.open_connection(device-hash, baudrate, onmessage_callback)
  *
  */
 var web2serial = {
-    devices: function(callback) {
+    get_devices: function(callback) {
         $.get("http://0.0.0.0:54321/devices", function( data ) {
             console.log(data);
             var devices = new Array();
@@ -29,5 +28,14 @@ var web2serial = {
             }
             callback(devices);
         });
+    },
+
+    open_connection: function(device_hash, baudrate, onmessage_callback) {
+        var url = "ws://0.0.0.0:54321/device/" + device_hash + "/baudrate/" + baudrate;
+        console.log(url);
+
+        socket = new WebSocket(url);
+        socket.onmessage = onmessage_callback;
+        return socket;
     }
 }

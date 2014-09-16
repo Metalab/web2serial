@@ -1,16 +1,34 @@
 <html>
   <head>
-    <script>
-      function load() {
-        web2serial.devices(function(data) { alert(data); });
-      }
-    </script>
-
     <script src="jquery-1.3.min.js"></script>
     <script src="web2serial.js"></script>
+    <script>
+      var conn;
+      
+      function load() {
+          web2serial.get_devices(show_devices);
+      }
+
+      function show_devices(device_list) {
+          // Callback after web2serial.get_devices
+          $("#devices").append(JSON.stringify(device_list));
+
+          // Automatically open last connection
+          var hash = device_list[device_list.length - 1].hash;
+          console.log(hash);
+
+          conn = web2serial.open_connection(hash, 9600,  on_message);
+      }
+
+      function on_message(event) {
+            console.log("websocket event: " + event.data);
+            //$("#messages").html("> " + event.data + "<br>" + $("#messages").html());
+        }
+    </script>
   </head>
 
   <body onload="load()">
-    <div id="results"></div>
+    <div id="devices">Devices: </div>
+    <div id="output"></div>
   </body>
 </html>
