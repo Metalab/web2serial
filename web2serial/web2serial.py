@@ -9,7 +9,7 @@ Cross-platform web-to-serial proxy
 
 __author__ = "Chris Hager"
 __email__ = "chris@bitsworking.com"
-__version__ = "0.1"
+__version__ = "0.2"
 
 # CONFIG_FILE = "config.yaml"
 
@@ -36,41 +36,20 @@ from tornado.options import define, options
 import serial
 import serial.tools.list_ports
 
-define("port", default=8888, help="run on the given port", type=int)
+# Port for the web interface
+PORT_WEB = 54321
 
+# Length of the device id hash
 DEVICE_ID_HASH_LENGTH = 8
 
 
-def get_com_ports():
-    """
-    Returns the currently available com ports
-    """
-    iterator = sorted(serial.tools.list_ports.comports())
-    return [(
-            hashlib.sha256(deviceid).hexdigest()[:DEVICE_ID_HASH_LENGTH],
-            deviceid, desc, hwid
-        ) for deviceid, desc, hwid in iterator]
-
-
-def open_serial_device_by_hash(hash, baudrate):
-    logging.info("open serial device by hash: %s" % hash)
-    for _hash, _deviceid, _desc, _hwid in get_com_ports():
-        if _hash == hash:
-            logging.info("serial device found for hash: %s" % _deviceid)
-            ser = serial.Serial(_deviceid, int(baudrate))
-            return ser
-
-    logging.error("serial device not found for hash %s" % hash)
-    return None
-
-
+# Tornado Web Application Description
 class Application(tornado.web.Application):
     def __init__(self):
         handlers = [
             (r"/", MainHandler),
             (r"/ping", PingHandler),
             (r"/devices", DevicesHandler),
-            (r"/chatsocket", ChatSocketHandler),
             (r"/device/([^/]+)/baudrate/([^/]+)", SerSocketHandler),
         ]
 
@@ -83,9 +62,31 @@ class Application(tornado.web.Application):
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
+# Tools
+def get_com_ports():
+    """ Returns the available com ports with hash """
+    iterator = sorted(serial.tools.list_ports.comports())
+    return [(
+            hashlib.sha256(deviceid).hexdigest()[:DEVICE_ID_HASH_LENGTH],
+            deviceid, desc, hwid
+        ) for deviceid, desc, hwid in iterator]
+
+
+def open_serial_device_by_hash(hash, baudrate):
+    """ Opens a serial device and returns the serial.Serial(...) connection """
+    logging.info("open serial device by hash: %s" % hash)
+    for _hash, _deviceid, _desc, _hwid in get_com_ports():
+        if _hash == hash:
+            logging.info("serial device found for hash: %s" % _deviceid)
+            ser = serial.Serial(_deviceid, int(baudrate))
+            return ser
+    raise LookupError("serial device not found for hash '%s'" % hash)
+
+
+# Handlers
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
-        self.render("index.html", devices=get_com_ports(), messages=ChatSocketHandler.cache)
+        self.render("index.html", devices=get_com_ports())
 
 
 class PingHandler(tornado.web.RequestHandler):
@@ -98,20 +99,27 @@ class DevicesHandler(tornado.web.RequestHandler):
 
 
 class SerSocketHandler(tornado.websocket.WebSocketHandler):
+    """
+    Handler for both the websocket and the serial connection.
+    """
     alive = True
     ser = None
-        # logging.info("SerSocketHandler init - hash=%s, baudrate=%s" % (hash, baudrate))
-
-    # def get(self, hash, baudrate):
-        # self.write("hash=%s, baudrate=%s" % (hash, baudrate))
 
     def open(self, hash, baudrate):
-        """ Open serial device with baudrate """
-        logging.info("WebSocket opened - hash=%s, baudrate=%s" % (hash, baudrate))
+        """ 
+        Websocket initiated a connection. Open serial device with baudrate and start reader thread. 
+        """
+        logging.info("Opening serial socket (hash=%s, baudrate=%s)" % (hash, baudrate))
+        try:
+            self.ser = open_serial_device_by_hash(hash, baudrate)
+            logging.info("Serial device successfullyh opened (hash=%s, baudrate=%s)" % (hash, baudrate))
+        except Exception as e:
+            logging.exception(e)
+            message_for_websocket = { "error": str(e) }
+            self.write_message(json.dumps(message_for_websocket))
+            return
 
-        self.ser = open_serial_device_by_hash(hash, baudrate)
-        logging.info("WebSocket - Serial device opened")
-
+        # Start the thread which reads for serial input 
         self.alive = True
         self.thread_read = threading.Thread(target=self.reader)
         self.thread_read.setDaemon(True)
@@ -119,29 +127,38 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         self.thread_read.start()
 
     def on_message(self, message):
-        """ Web -> Serial """
-        # data = serial.to_bytes(message)
-        # logging.info("got message. writing '%s' to serial device", repr(message))
+        """ 
+        JSON message from the websocket is unpacked, and the byte message sent to the serial connection.
+        """
+        logging.info("got message '%s' from websocket", repr(message))
+
+        # Unpack
         j = json.loads(message)
         data = str(j["msg"])
         logging.info("web -> serial: %s" % repr(data))
+
+        # Send data to serial
         try:
             self.ser.write(data)
+            logging.info("successfully sent to serial connection: '%s'" % repr(data))
         except Exception as e:
             # probably got disconnected
             logging.error(e)
 
     def on_close(self):
-        logging.info("WebSocket closed. Closing serial...")
+        """ Close serial and quit reader thread """
+        logging.info("Closing serial connection...")
         self.alive = False
-        self.ser.close()
+        if self.ser is not None:
+            self.ser.close()
+        logging.info("Serial closed, waiting for reader thread to quit...")
         self.thread_read.join()
         logging.info("Serial closed, reader thread quit.")
 
     def reader(self):
         """
-        loop forever and copy serial->socket
-        (via http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/tcp_serial_redirect.py)
+        Thread which reads on the serial connection. If data is received, forwards
+        it to websocket.
         """
         logging.debug('reader thread started')
         while self.alive:
@@ -153,8 +170,9 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
                 if data:
                     # escape outgoing data when needed (Telnet IAC (0xff) character)
                     # data = serial.to_bytes(self.rfc2217.escape(data))
-                    self.write_message(data)
-                    logging.info("message from serial: %s" % repr(data))
+                    message = { "msg": data }
+                    logging.info("message from serial to websocket: %s" % repr(message))
+                    self.write_message(json.dumps(message))
             except Exception as e:
                 logging.error('%s' % (e,))
                 # probably got disconnected
@@ -163,63 +181,22 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         logging.debug('reader thread terminated')
 
 
-class ChatSocketHandler(tornado.websocket.WebSocketHandler):
-    waiters = set()
-    cache = []
-    cache_size = 200
-
-    def get_compression_options(self):
-        # Non-None enables compression with default options.
-        return {}
-
-    def open(self):
-        ChatSocketHandler.waiters.add(self)
-
-    def on_close(self):
-        ChatSocketHandler.waiters.remove(self)
-
-    @classmethod
-    def update_cache(cls, chat):
-        cls.cache.append(chat)
-        if len(cls.cache) > cls.cache_size:
-            cls.cache = cls.cache[-cls.cache_size:]
-
-    @classmethod
-    def send_updates(cls, chat):
-        logging.info("sending message to %d waiters", len(cls.waiters))
-        for waiter in cls.waiters:
-            try:
-                waiter.write_message(chat)
-            except:
-                logging.error("Error sending message", exc_info=True)
-
-    def on_message(self, message):
-        logging.info("got message %r", message)
-        parsed = tornado.escape.json_decode(message)
-        chat = {
-            "id": str(uuid.uuid4()),
-            "body": parsed["body"],
-            }
-        chat["html"] = tornado.escape.to_basestring(
-           self.render_string("message.html", message=chat))
-
-        ChatSocketHandler.update_cache(chat)
-        ChatSocketHandler.send_updates(chat)
-
-
-
-def main(options, args):
+def start(port):
+    # Parse command line arguments
     tornado.options.parse_command_line()
 
-    logging.info("py2serial v%s" % __version__)
+    # Initial output 
+    logging.info("web2serial.py v%s" % __version__)
     logging.info("Com ports: %s" % get_com_ports())
-    logging.info("Starting server on port %s" % options.port)
+    logging.info("Starting server on port %s" % port)
 
+    # Start of tornado web application, and ioloop blocking method
     app = Application()
-    app.listen(options.port)
+    app.listen(port)
     tornado.ioloop.IOLoop.instance().start()
 
 
+# If run from command line: 
 if __name__ == '__main__':
     usage = """usage: %prog [options] arg
 
@@ -227,14 +204,10 @@ if __name__ == '__main__':
     version = "%prog " + __version__
     parser = OptionParser(usage=usage, version=version)
 
-    parser.add_option("-v", "--verbose", default=False,
-        action="store_true", dest="verbose")
+    #parser.add_option("-v", "--verbose", default=False,
+    #    action="store_true", dest="verbose")
 
-    parser.add_option("-p", "--port", default=54321, \
-          dest="port")
+    parser.add_option("-p", "--port", default=PORT_WEB, dest="port")
 
     (options, args) = parser.parse_args()
-    # if len(args) == 0:
-        # parser.error("Please add at least one argument")
-
-    main(options, args)
+    start(options.port)

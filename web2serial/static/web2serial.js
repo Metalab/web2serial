@@ -16,9 +16,14 @@ function sendMessage() {
     console.log(message);
 
     socket.send(JSON.stringify(message));
+
+    // Empty input field and set focus
     $("#input").val("").select();
 
+    // Add send message to messages list
     $("#messages").html("< " + msg + "<br>" + $("#messages").html());
+
+    // Announce that form submission has already been handled (avoids redirect)
     return false;
 }
 
@@ -87,5 +92,4 @@ function openDevice(hash) {
     $("#messages").html("");
     $("#comm").show();
     $("#comm").find("input[type=text]").val("").select();
-
 }

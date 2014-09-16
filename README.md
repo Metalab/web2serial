@@ -56,3 +56,13 @@ Websocket JavaScript Example:
     ws.onmessage = function (evt) {
        alert(evt.data);
     };
+
+
+Inspirations
+
+* http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/tcp_serial_redirect.py
+
+
+TODO
+
+* Error handling
