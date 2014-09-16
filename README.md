@@ -4,8 +4,15 @@ web2serial
 Proxy from web to serial, to flash devices and other fun things.
 
 
-Getting up and running
---------
+Directories
+-----------
+
+* `software/web2serial-core`: Python web2serial service which handles serial and websocket connections
+* `software/web2serial-javascript`: JavaScript API client for websites to talk with a users `web2serial-core` daemon
+
+
+Getting web2serial up and running
+---------------------------------
 
 Just install the dependencies [tornado](https://github.com/tornadoweb/tornado) and [pyserial](http://pythonhosted.org/pyserial/), get a copy of the code and run it.
 
@@ -18,11 +25,11 @@ Just install the dependencies [tornado](https://github.com/tornadoweb/tornado) a
     $ cd web2serial/web2serial
     $ python web2serial.py
     
-Now you can access the built-in web interface at http://0.0.0.0:54321.
+Now you can access the built-in web interface at http://0.0.0.0:54321 and talk with your serial devices.
 
 
 REST Interface
--------
+--------------
 
 Heartbeat and check if web2serial is running
 
@@ -44,10 +51,6 @@ Websocket for web <--> serial communication
     Websocket address for opening a device by hash with a specific baudrate
 
 
-Example
--------
-
-The `web2serial` daemon contains an example web interface. You can access it by default with any web browser at http://0.0.0.0:54321.
 
 
 JavaScript Websocket Examples

@@ -1,0 +1,28 @@
+<html>
+  <head>
+    <script>
+      function appendResults(text) {
+        var results = document.getElementById('results');
+        results.appendChild(document.createElement('P'));
+        results.appendChild(document.createTextNode(text));
+      }
+
+      function makeRequest() {
+        var request = gapi.client.urlshortener.url.get({
+          'shortUrl': 'http://goo.gl/fbsS'
+        });
+        request.execute(function(response) {
+          appendResults(response.longUrl);
+        });
+      }
+
+      function load() {
+        test(123);
+      }
+    </script>
+    <script src="web2serial.js"></script>
+  </head>
+  <body onload="load()">
+    <div id="results"></div>
+  </body>
+</html>
