@@ -8,7 +8,7 @@ Directories
 -----------
 
 * `software/web2serial-core`: Python web2serial service which handles serial and websocket connections
-* `software/web2serial-javascript`: JavaScript API client for websites to talk with a users `web2serial-core` daemon
+* `software/web2serial-javascript`: JavaScript API client for websites to talk with a users `web2serial-core` service
 
 
 Getting web2serial up and running
@@ -24,8 +24,10 @@ Just install the dependencies [tornado](https://github.com/tornadoweb/tornado) a
     $ git clone https://github.com/Metalab/web2serial.git
     $ cd web2serial/web2serial-core/
     $ python web2serial.py
-    
-Now you can access the built-in web interface at http://0.0.0.0:54321 and talk with your serial devices.
+
+Now you can access the built-in web interface at http://0.0.0.0:54321 and talk with your serial devices. Furthermore
+we have a JavaScript API client with which you can develop your own apps. Take a look at the minimal JavaScript demo 
+in `software/web2serial-javascript/minimal-demo/demo.html`.
 
 
 REST Interface
@@ -53,46 +55,9 @@ Websocket for web <--> serial communication
 
 
 
-JavaScript Websocket Examples
-=============================
-
-jQuery GET example (http://api.jquery.com/jquery.get/):
-
-    var jqxhr = $.get("/ping", function() {
-        alert( "success" );
-    })
-    .done(function() {
-        alert( "second success" );
-    })
-    .fail(function() {
-        alert( "error" );
-    })
-    .always(function() {
-        alert( "finished" );
-    });
-
-
-Websocket JavaScript Example:
-
-    var ws = new WebSocket("ws://localhost:8888/websocket");
-    ws.onopen = function() {
-       ws.send("Hello, world");
-    };
-    ws.onmessage = function (evt) {
-       alert(evt.data);
-    };
-
-
-Inspirations
-
-* http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/tcp_serial_redirect.py
-
-
 TODO
 ====
 
-* web2serial.js
-  * Detect if web2serial-core is not running
 * Internal website GUI design
 * Wrapper: Service, GUI
 * Installer, Uninstaller
