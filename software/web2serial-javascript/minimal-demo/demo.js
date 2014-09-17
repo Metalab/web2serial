@@ -1,5 +1,13 @@
+/**
+ * Reference implementation of web2serial.js, which you can
+ * use to build for custom web2serial apps.
+ *
+ * For the API documentation take a look at `web2serial.js`:
+ * https://github.com/Metalab/web2serial/blob/master/software/web2serial-javascript/web2serial.js
+ */
+
+// Web2SerialSocket
 var socket;
-var baudrate_default = 9600;
 
 // Stuff to do when website is loaded
 $(function() {
@@ -8,9 +16,6 @@ $(function() {
         send();
         return false;
     });
-
-    // Set default baudrate
-    $("#input-baudrate").val(baudrate_default);
 
     // Check whether web2serial-core is running
     web2serial.is_alive(function(is_alive) {

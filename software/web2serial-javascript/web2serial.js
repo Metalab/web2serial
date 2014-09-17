@@ -1,12 +1,56 @@
 /**
- * web2serial JavaScript Client
+ * web2serial.js: JavaScript API client for custom web2serial apps
  *
- * Requires jQuery
+ * About
  *
- * Usage: see demo.js
+ *     You can use web2serial.js to write web apps that upload data to a serial device.
+ *     web2serial.js requires jQuery (tested with jquery-2.1.1). 
  *
+ *     For an usage example see demo.js (live at http://metalab.github.io/web2serial)
+ *
+ * Contributors
+ *
+ *     Chris Hager <chris@bitsworking.com>
+ *     Overflo <flo@tekstix.com>
+ *
+ * License
+ * 
+ *     LGPLv3 (see `LICENSE`)
+ *
+ * Documentation
+ *
+ *     web2serial.js
+ *
+ *         // Check whether web2serial-core is running
+ *         web2serial.is_alive(function(is_alive) {
+ *             if (is_alive) { ... } else { ... }
+ *         });
+ *
+ *         // Get a list of available serial devices
+ *         web2serial.get_devices(function(device_list) {
+ *             ...
+ *         })
+ *
+ *         // Open a connection to one of the devices
+ *         socket = web2serial.open_connection(device_hash, baudrate);
+ *
+ *     Web2SerialSocket
+ *
+ *         // methods
+ *         socket.send(data) .. send data as bytes to the serial device
+ *         socket.close() ..... close the connection
+ *
+ *         // event listeners
+ *         socket.onmessage(data) .. when a message is received from web2serial-core
+ *         socket.onopen(event) .... when a connection has been opened
+ *         socket.onerror(event) ... when a connection had an error
+ *         socket.onclose(event) ... when a connection has been closed
  */
 
+// Cache of found serial devices
+var devices;
+
+// A Device represents an attached serial device on the client
 var Device = function(hash, device, desc, hwinfo) {
     this.hash = hash;
     this.device = device;
@@ -15,6 +59,7 @@ var Device = function(hash, device, desc, hwinfo) {
     this.str = "Device(" + this.hash + ", " + this.device + ", " + this.desc + ", " + this.hwinfo + ")";
 }
 
+// WebSocket wrapper for communication between JavaScript and the serial device
 var Web2SerialSocket = function(device_hash, baudrate) {
     // you should overwrite this method to receive data
     this.onmessage = function(data) {};
@@ -24,11 +69,17 @@ var Web2SerialSocket = function(device_hash, baudrate) {
     this.onerror = function(event) {};
     this.onclose = function(event) {};
 
-    // use `socket.send(bytestring)` to send bytes to the serial device
-    this.send = function(bytestring) {
-        msg = JSON.stringify({ "msg": bytestring });
+    // use `socket.send(data)` to send bytes to the serial device
+    this.send = function(data) {
+        msg = JSON.stringify({ "msg": data });
         console.log(msg);
         this.socket.send(msg);
+    }
+
+    // use `socket.close()` to close the WebSocket connection
+    this.close = function(code, reason) {
+        // code and reason are optional WebSocket close arguments
+        this.socket.close(code, reason);
     }
 
     // internals
@@ -37,10 +88,10 @@ var Web2SerialSocket = function(device_hash, baudrate) {
     this.url = "ws://0.0.0.0:54321/device/" + this.device.hash + "/baudrate/" + baudrate;
     this.socket = new WebSocket(this.url);
 
-    // make `this` accessible from inner class methods
+    // make `this` accessible for inner class methods
     var parent = this;
 
-    // Message from web2serial service: unwrap JSON
+    // Handle message from web2serial-core. Parse JSON, check if error, ...
     this.socket.onmessage = function(event) {
         console.log("websocket message");
         console.log(event);
@@ -56,10 +107,11 @@ var Web2SerialSocket = function(device_hash, baudrate) {
         }
     };
 
+    // Handle connection-opened event
     this.socket.onopen = function(event) {
         console.log(event);
         parent.onopen(event);
-    }
+    };
 
     // Handle error event
     this.socket.onerror = function(event) {
@@ -74,8 +126,7 @@ var Web2SerialSocket = function(device_hash, baudrate) {
     };
 }
 
-var devices;
-
+// web2serial API
 var web2serial = {
     is_alive: function(callback) {
         // returns whether daemon is running on this client computer
