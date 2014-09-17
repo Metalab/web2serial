@@ -194,6 +194,7 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
                 logging.error('%s' % (e,))
                 message_for_websocket = { "error": str(e) }
                 self.write_message(json.dumps(message_for_websocket))
+                self.close()
                 break
                 
         self.alive = False
