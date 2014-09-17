@@ -29,6 +29,7 @@ Now you can access the built-in web interface at http://0.0.0.0:54321 and talk w
 we have a JavaScript API client with which you can develop your own apps. Take a look at the minimal JavaScript demo 
 in `software/web2serial-javascript/minimal-demo/demo.html`.
 
+Check out the live minimal demo: http://metalab.github.io/web2serial
 
 REST Interface
 --------------
@@ -51,8 +52,6 @@ Websocket for web <--> serial communication
     SCK /device/<device-hash>/open/<baudrate>
     
     Websocket address for opening a device by hash with a specific baudrate
-
-
 
 
 TODO
