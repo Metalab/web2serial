@@ -58,6 +58,14 @@ Websocket for web <--> serial communication
 TODO
 ====
 
+web2serial.js
+* Web2SerialSocket
+  * `.close()` method
+  * error handling tests
+* Documentation
+
+Next Steps
+* :54321 web interface - update from minimal design?, filenames
 * Internal website GUI design
 * Wrapper: Service, GUI
 * Installer, Uninstaller

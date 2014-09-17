@@ -3,23 +3,7 @@
  *
  * Requires jQuery
  *
- * Usage:
- *
- *     web2serial.get_devices(callback) ... get list of devices
- *
- *     // Get a WebSocket connection to a serial device:
- *     websocket = web2serial.open_connection(device-hash, baudrate)
- *
- * For the WebSocket API see https://developer.mozilla.org/en-US/docs/Web/API/WebSocket
- *
- * WebSocket has 2 methods:
- * 
- *     void send(in DOMString data);
- *     void close(in optional unsigned long code, in optional DOMString reason);
- *
- * Sending data to the web2serial service requires a JSON object like this:
- * { "msg": "your-bytes-for-the-serial-connection" }. You can use the helper 
- * method `web2serial.jsonify(str)` to build the final JSON string.
+ * Usage: see demo.js
  *
  */
 
@@ -28,11 +12,12 @@ var Device = function(hash, device, desc, hwinfo) {
     this.device = device;
     this.desc = desc;
     this.hwinfo = hwinfo;
+    this.str = "Device(" + this.hash + ", " + this.device + ", " + this.desc + ", " + this.hwinfo + ")";
 }
 
 var Web2SerialSocket = function(device_hash, baudrate) {
     // you should overwrite this method to receive data
-    this.onmessage = function(str) {};
+    this.onmessage = function(data) {};
 
     // overwrite these methods if you want
     this.onopen = function(event) {};
@@ -47,15 +32,12 @@ var Web2SerialSocket = function(device_hash, baudrate) {
     }
 
     // internals
-    this.device = web2serial.device_by_hash(device_hash);
     this.baudrate = baudrate;
-    this.str = "Device(" + this.device.hash + ", " + this.device.device + ", " + this.device.desc + ", " + this.device.hwinfo + ")";
-
+    this.device = web2serial.device_by_hash(device_hash);
     this.url = "ws://0.0.0.0:54321/device/" + this.device.hash + "/baudrate/" + baudrate;
-    console.log(this.url);
-
     this.socket = new WebSocket(this.url);
 
+    // make `this` accessible from inner class methods
     var parent = this;
 
     // Message from web2serial service: unwrap JSON
@@ -97,7 +79,7 @@ var devices;
 var web2serial = {
     is_alive: function(callback) {
         // returns whether daemon is running on this client computer
-        jqxhr = $.get("http://0.0.0.0:54321/ping", function( data ) {
+        $.get("http://0.0.0.0:54321/ping", function( data ) {
             callback(true);
         }).error(function(e) { 
             console.log(e); 

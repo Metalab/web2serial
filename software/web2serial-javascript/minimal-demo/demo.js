@@ -46,28 +46,29 @@ function connect(device_hash) {
     $("#input-btn").attr("disabled", "disabled");
 
     // Create a Web2Serial WebSocket Connection
-    var baudrate = $("#input-baudrate").val();
-    socket = web2serial.open_connection(device_hash, baudrate);
+    socket = web2serial.open_connection(device_hash, $("#input-baudrate").val());
+
+    // Set handlers
     socket.onmessage = function(data) {
         // Incoming bytes from the serial device
         add_message("<div class='alert alert-info' role='alert'>received: " + data + "</div>");
     };
-    socket.onopen = function(data) {
+    socket.onopen = function(event) {
         // Connection has successfully opened
-        add_message("<div class='alert alert-success' role='alert'>opened: " + this.str + ", " + this.baudrate + " baud</div>");
+        add_message("<div class='alert alert-success' role='alert'>opened: " + this.device.str + ", " + this.baudrate + " baud</div>");
         $("#device-" + device_hash).removeClass().addClass("btn btn-success");
         $("#input").removeAttr("disabled");
         $("#input-btn").removeAttr("disabled");
         $("#input").select();
     };
-    socket.onerror = function(data) {
-        // Error
-        add_message("<div class='alert alert-danger' role='alert'>error: " + JSON.stringify(data) + "</div>");
+    socket.onerror = function(event) {
+        // Error handling
+        add_message("<div class='alert alert-danger' role='alert'>error: " + JSON.stringify(event) + "</div>");
         $("#device-" + device_hash).removeClass().addClass("btn btn-danger");
     };
-    socket.onclose = function(data) {
+    socket.onclose = function(event) {
         // Connection closed
-        add_message("<div class='alert alert-info' role='alert'>closed: " + this.str + "</div>");
+        add_message("<div class='alert alert-info' role='alert'>closed: " + this.device.str + "</div>");
         $("#input").attr("disabled", "disabled");
         $("#input-btn").attr("disabled", "disabled");
     };
@@ -79,5 +80,4 @@ function send() {
     socket.send(msg);
     add_message("<div class='alert alert-info' role='alert'>sent: " + msg + "</div>");
     $("#input").val("").select();
-    return false;
 }
