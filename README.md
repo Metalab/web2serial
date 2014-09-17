@@ -7,14 +7,14 @@ Proxy from web to serial, to flash devices and other fun things.
 Directories
 -----------
 
-* `software/web2serial-core`: Python web2serial service which handles serial and websocket connections
-* `software/web2serial-javascript`: JavaScript API client for websites to talk with a users `web2serial-core` service
+* `software/web2serial-core`: Python app which bridges serial and websocket connections
+* `software/web2serial-javascript`: JavaScript API client for websites to talk with a users `web2serial-core`
 
 
 Getting web2serial up and running
 ---------------------------------
 
-Just install the dependencies [tornado](https://github.com/tornadoweb/tornado) and [pyserial](http://pythonhosted.org/pyserial/), get a copy of the code and run it.
+Simply get a copy of web2serial and install the two dependencies [tornado](https://github.com/tornadoweb/tornado) and [pyserial](http://pythonhosted.org/pyserial/).
 
     # Install Python modules tornado and py2serial
     $ sudo easy_install tornado
@@ -25,29 +25,29 @@ Just install the dependencies [tornado](https://github.com/tornadoweb/tornado) a
     $ cd web2serial/web2serial-core/
     $ python web2serial.py
 
-Now you can access the built-in web interface at http://0.0.0.0:54321 and talk with your serial devices. Furthermore
-we have a JavaScript API client with which you can develop your own apps. Take a look at the minimal JavaScript demo 
-in `software/web2serial-javascript/minimal-demo/demo.html`.
+You can now access the built-in web interface at http://0.0.0.0:54321 and talk with your serial devices. Furthermore
+we have a JavaScript API client which you can use to your own web2serial apps.
 
 Check out the live minimal demo: http://metalab.github.io/web2serial
 
-REST Interface
---------------
 
-Heartbeat and check if web2serial is running
+web2serial-core REST Interface
+------------------------------
+
+Check if web2serial-core is running
 
     GET /ping
     
     Returns 'pong' (200 OK)
 
-Get a device list
+Get a list of available serial devices
 
     GET /devices
 
     Returns JSON array of devices (200 OK)    
     [[hash, device string, desc, hwid], ...]
 
-Websocket for web <--> serial communication
+Open a websocket connection to a specific serial device
 
     SCK /device/<device-hash>/open/<baudrate>
     
@@ -59,7 +59,6 @@ TODO
 
 web2serial.js
 * Web2SerialSocket
-  * `.close()` method
   * error handling tests
 * Documentation
 

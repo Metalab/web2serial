@@ -3,19 +3,17 @@
 """
 web2serial.py
 
-Cross-platform web-to-serial proxy
+Proxy from web to serial and vice versa, to flash devices and other fun things.
 
+https://github.com/Metalab/web2serial
 """
 
 __author__ = "Chris Hager"
 __email__ = "chris@bitsworking.com"
 __version__ = "0.2"
 
-# CONFIG_FILE = "config.yaml"
-
 import sys
 import os
-# import yaml
 from optparse import OptionParser
 from pprint import pprint
 
@@ -46,6 +44,7 @@ DEVICE_ID_HASH_LENGTH = 8
 # Tornado Web Application Description
 class Application(tornado.web.Application):
     def __init__(self):
+        # URLs
         handlers = [
             (r"/", MainHandler),
             (r"/ping", PingHandler),
@@ -53,12 +52,13 @@ class Application(tornado.web.Application):
             (r"/device/([^/]+)/baudrate/([^/]+)", SerSocketHandler),
         ]
 
+        # Settings
         settings = dict(
-            cookie_secret="asdasdas87D*A8a7sd8T@*2",
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
-            xsrf_cookies=True,
         )
+
+        # Init Web Application
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
@@ -100,6 +100,7 @@ class PingHandler(SharedRequestHandler):
     def get(self):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.write("pong")
+
 
 class DevicesHandler(SharedRequestHandler):
     def get(self):
@@ -201,8 +202,9 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         logging.debug('reader thread terminated')
 
 
+# Get web2serial-core up and running
 def start(port):
-    # Parse command line arguments
+    # Have tornado parse command line arguments
     tornado.options.parse_command_line()
 
     # Initial output 
