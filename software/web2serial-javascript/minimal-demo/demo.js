@@ -38,44 +38,32 @@ function refresh_devices() {
     });    
 }
 
-// Helper to add messages to the html document
-function add_message(str) {
-    $("#messages").html(str + $("#messages").html());
-}
-
 // Connect to a specific serial device
 function connect(device_hash) {
-    // Update UI
-    $(".device button").each(function() { $(this).removeClass().addClass("btn btn-default"); });
-    $("#input").attr("disabled", "disabled");
-    $("#input-btn").attr("disabled", "disabled");
+    updateui_connect(device_hash);
 
     // Create a Web2Serial WebSocket Connection
     socket = web2serial.open_connection(device_hash, $("#input-baudrate").val());
 
-    // Set handlers
+    // Set event handlers
     socket.onmessage = function(data) {
-        // Incoming bytes from the serial device
-        add_message("<div class='alert alert-info' role='alert'>received: " + data + "</div>");
+        // Handle incoming bytes from the serial device
+        add_message("received: " + data, "info");
     };
+
     socket.onopen = function(event) {
-        // Connection has successfully opened
-        add_message("<div class='alert alert-success' role='alert'>opened: " + this.device.str + ", " + this.baudrate + " baud</div>");
-        $("#device-" + device_hash).removeClass().addClass("btn btn-success");
-        $("#input").removeAttr("disabled");
-        $("#input-btn").removeAttr("disabled");
-        $("#input").select();
+        // Connection to serial device has been successfully established
+        updateui_connection_established(this.device);
     };
+
     socket.onerror = function(event) {
-        // Error handling
-        add_message("<div class='alert alert-danger' role='alert'>error: " + JSON.stringify(event) + "</div>");
-        $("#device-" + device_hash).removeClass().addClass("btn btn-danger");
+        // Connection had an error
+        updateui_connection_error(this.device, JSON.stringify(event));
     };
+
     socket.onclose = function(event) {
-        // Connection closed
-        add_message("<div class='alert alert-info' role='alert'>closed: " + this.device.str + "</div>");
-        $("#input").attr("disabled", "disabled");
-        $("#input-btn").attr("disabled", "disabled");
+        // Connection was closed
+        updateui_connection_closed(this.device);
     };
 }
 
@@ -83,6 +71,37 @@ function connect(device_hash) {
 function send() {
     var msg = $("#input").val();
     socket.send(msg);
-    add_message("<div class='alert alert-info' role='alert'>sent: " + msg + "</div>");
+    add_message("sent: " + msg, "info");
     $("#input").val("").select();
+}
+
+// Helper to add messages to the html document
+function add_message(str, alert_role) {
+    $("#messages").html("<div class='alert alert-" + alert_role + "' role='alert'>" + str + "</div>" + $("#messages").html());
+}
+
+// UI Update Helpers
+function updateui_connect(device_hash) {
+    $(".device button").each(function() { $(this).removeClass().addClass("btn btn-default"); });
+    $("#input").attr("disabled", "disabled");
+    $("#input-btn").attr("disabled", "disabled");
+}
+
+function updateui_connection_established(device) {}
+    add_message("opened: " + device.str + ", " + baudrate + " baud", "success");
+    $("#device-" + device.hash).removeClass().addClass("btn btn-success");
+    $("#input").removeAttr("disabled");
+    $("#input-btn").removeAttr("disabled");
+    $("#input").select();
+}
+
+function updateui_connection_error(device, error_string) {
+    add_message("error: " + error_string, "danger");
+    $("#device-" + device.hash).removeClass().addClass("btn btn-danger");
+}
+
+function updateui_connection_closed(device) {
+    $("#input").attr("disabled", "disabled");
+    $("#input-btn").attr("disabled", "disabled");
+    add_message("closed: " + device.str, "info");
 }
