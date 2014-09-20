@@ -53,7 +53,7 @@ function connect(device_hash) {
 
     socket.onopen = function(event) {
         // Connection to serial device has been successfully established
-        updateui_connection_established(this.device);
+        updateui_connection_established(this.device, this.baudrate);
     };
 
     socket.onerror = function(event) {
@@ -87,7 +87,7 @@ function updateui_connect(device_hash) {
     $("#input-btn").attr("disabled", "disabled");
 }
 
-function updateui_connection_established(device) {}
+function updateui_connection_established(device, baudrate) {
     add_message("opened: " + device.str + ", " + baudrate + " baud", "success");
     $("#device-" + device.hash).removeClass().addClass("btn btn-success");
     $("#input").removeAttr("disabled");
