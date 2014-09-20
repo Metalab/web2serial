@@ -11,9 +11,6 @@ var socket;
 
 // Stuff to do when website is loaded
 $(function() {
-    var a = "\x01";
-    console.log("a='" + a + "', len=" + a.length);
-
     // Catch form input when user presses enter
     $("#inputform").submit(function() {
         send();

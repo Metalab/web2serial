@@ -163,7 +163,7 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
             logging.error(e)
             message_for_websocket = { "error": repr(e) }
             self.write_message(json.dumps(message_for_websocket))
-            self.close()
+            # self.close()
             raise
 
     def on_close(self):
@@ -194,12 +194,20 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
                     message = { "msg": data }
                     logging.info("message from serial to websocket: %s (len=%s)" % (repr(message), len(message)))
                     self.write_message(json.dumps(message, encoding="raw_unicode_escape"))
+
+            except serial.SerialException as e:
+                logging.error("%s", str(e))
+                message_for_websocket = { "error": str(e) }
+                if self.alive:
+                    self.write_message(json.dumps(message_for_websocket))
+
             except Exception as e:
                 # probably got disconnected
                 logging.error('%s' % (e,))
-                message_for_websocket = { "error": e }
-                self.write_message(json.dumps(message_for_websocket))
-                self.close()
+                message_for_websocket = { "error": str(e) }
+                if self.alive:
+                    self.write_message(json.dumps(message_for_websocket))
+                # self.close()
                 raise
                 
         self.alive = False
