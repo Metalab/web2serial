@@ -81,10 +81,10 @@ function send() {
 // Send magic bytes to the serial device (magicshifter.net)
 function send_bytes() {
     socket.send("MAGIC_UPLOAD"); // 12 bytes
-    socket.send("\x01"); // 1 byte
-    socket.send("\x03"); // 1 byte
     socket.send("\xff"); // 1 byte
-    socket.send("\xbb"); // 1 byte
+    // socket.send("\x03"); // 1 byte
+    // socket.send("\xff"); // 1 byte
+    // socket.send("\xbb"); // 1 byte
 }
 
 // Helper to add messages to the html document
@@ -93,7 +93,7 @@ function add_message(str, alert_role) {
 }
 
 function add_response(str) {
-    $("#messages").html("<pre>" + str + "</pre>" + $("#messages").html());
+    $("#messages").html("<pre>" + str + "(" + str.length + " bytes)</pre>" + $("#messages").html());
 }
 
 // UI Update Helpers

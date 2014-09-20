@@ -147,18 +147,17 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         """ 
         JSON message from the websocket is unpacked, and the byte message sent to the serial connection.
         """
-        logging.info("mes from websocket: %s", repr(message))
+        logging.info("msg from websocket: %s (len=%s)" % (repr(message), len(message)))
 
         # Unpack
         j = json.loads(message)
-        data = bytearray(j["msg"], "UTF-8");
+        data = bytearray(j["msg"], "raw_unicode_escape");
         logging.info("web -> serial: %s (len=%s)" % (repr(data), len(data)))
 
         # Send data to serial
         try:
             self.ser.write(data)
             sleep(SERIAL_SEND_TIMEOUT)
-            logging.info("web -> serial: success")
         except Exception as e:
             # probably got disconnected
             logging.error(e)
@@ -193,15 +192,15 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
                     # escape outgoing data when needed (Telnet IAC (0xff) character)
                     # data = serial.to_bytes(self.rfc2217.escape(data))
                     message = { "msg": data }
-                    logging.info("message from serial to websocket: %s" % repr(message))
-                    self.write_message(json.dumps(message))
+                    logging.info("message from serial to websocket: %s (len=%s)" % (repr(message), len(message)))
+                    self.write_message(json.dumps(message, encoding="raw_unicode_escape"))
             except Exception as e:
                 # probably got disconnected
                 logging.error('%s' % (e,))
-                message_for_websocket = { "error": str(e) }
+                message_for_websocket = { "error": e }
                 self.write_message(json.dumps(message_for_websocket))
                 self.close()
-                break
+                raise
                 
         self.alive = False
         logging.debug('reader thread terminated')
