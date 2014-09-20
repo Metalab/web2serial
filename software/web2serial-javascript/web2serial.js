@@ -3,8 +3,10 @@
  *
  * About
  *
- *     You can use web2serial.js to write web apps that upload data to a serial device.
+ *     You can use web2serial.js to write web apps that exchange data with serial devices.
  *     web2serial.js requires jQuery (tested with jquery-2.1.1). 
+ *
+ *     You can exchange strings, bytes, arraybuffers, etc.
  *
  *     For an usage example see demo.js (live at http://metalab.github.io/web2serial)
  *
@@ -37,7 +39,7 @@
  *     Web2SerialSocket
  *
  *         // methods
- *         socket.send(data) .. send data as bytes to the serial device
+ *         socket.send(data) .. send data [string, bytes, arraybuffer, ...] to the serial device
  *         socket.close() ..... close the connection
  *
  *         // event listeners

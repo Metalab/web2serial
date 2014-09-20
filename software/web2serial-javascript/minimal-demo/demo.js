@@ -78,9 +78,9 @@ function send() {
     $("#input").val("").select();
 }
 
-// Send message from input field to the serial device
+// Send magic bytes to the serial device (magicshifter.net)
 function send_bytes() {
-    socket.send("MAGIC_UPLOAD");
+    socket.send("MAGIC_UPLOAD"); // 12 bytes
     socket.send("\x01"); // 1 byte
     socket.send("\x03"); // 1 byte
     socket.send("\xff"); // 1 byte

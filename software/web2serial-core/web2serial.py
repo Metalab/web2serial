@@ -16,6 +16,7 @@ import sys
 import os
 from optparse import OptionParser
 from pprint import pprint
+from time import sleep
 
 import logging
 import os.path
@@ -36,6 +37,8 @@ import serial.tools.list_ports
 
 # Port for the web interface
 PORT_WEB = 54321
+
+SERIAL_SEND_TIMEOUT = 0.001
 
 # Length of the device id hash
 DEVICE_ID_HASH_LENGTH = 8
@@ -144,17 +147,18 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         """ 
         JSON message from the websocket is unpacked, and the byte message sent to the serial connection.
         """
-        logging.info("got message '%s' from websocket", repr(message))
+        logging.info("mes from websocket: %s", repr(message))
 
         # Unpack
         j = json.loads(message)
         data = bytearray(j["msg"], "UTF-8");
-        logging.info("web -> serial: %s (type=%s, len=%s)" % (repr(data), type(data), len(data)))
+        logging.info("web -> serial: %s (len=%s)" % (repr(data), len(data)))
 
         # Send data to serial
         try:
             self.ser.write(data)
-            logging.info("successfully sent to serial connection: '%s'" % repr(data))
+            sleep(SERIAL_SEND_TIMEOUT)
+            logging.info("web -> serial: success")
         except Exception as e:
             # probably got disconnected
             logging.error(e)

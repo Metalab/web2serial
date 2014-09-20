@@ -58,9 +58,9 @@ TODO
 ====
 
 web2serial.js
+* sending weird bytes doc
 * Web2SerialSocket
   * error handling tests
-* Documentation
 
 Next Steps
 * :54321 web interface - update from minimal design?, filenames
@@ -72,7 +72,7 @@ Next Steps
 Authors & Contributors
 ======================
 
-metachris, overflo
+metachris, overflo, wizard23
 
 
 License
