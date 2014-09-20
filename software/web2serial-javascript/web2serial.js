@@ -132,7 +132,7 @@ var Web2SerialSocket = function(device_hash, baudrate) {
 var web2serial = {
     is_alive: function(callback) {
         // returns whether daemon is running on this client computer
-        $.get("http://0.0.0.0:54321/ping", function( data ) {
+        $.get("http://localhost:54321/ping", function( data ) {
             callback(true);
         }).error(function(e) { 
             console.log(e); 
@@ -141,7 +141,7 @@ var web2serial = {
     },
 
     get_devices: function(callback) {
-        $.get("http://0.0.0.0:54321/devices", function( data ) {
+        $.get("http://localhost:54321/devices", function( data ) {
             console.log(data);
             devices = new Array();
             var _devices = JSON.parse(data);
