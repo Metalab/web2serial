@@ -40,7 +40,9 @@
  *
  *         // methods
  *         socket.send(data) .. send data [string, bytes, arraybuffer, ...] to the serial device
- *         socket.close() ..... close the connection
+ *         socket.close([code[, reason]]) ..... close the connection with optional code and reason
+ *           - default code: 1000
+ *           - see https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Close_codes
  *
  *         // event listeners
  *         socket.onmessage(data) .. when a message is received from web2serial-core
@@ -79,8 +81,12 @@ var Web2SerialSocket = function(device_hash, baudrate) {
     }
 
     // use `socket.close()` to close the WebSocket connection
+    // code 1000 is normal: https://developer.mozilla.org/en-US/docs/Web/API/CloseEvent#Close_codes
     this.close = function(code, reason) {
         // code and reason are optional WebSocket close arguments
+        if (undefined == code) {
+            code = 1000;
+        }
         this.socket.close(code, reason);
     }
 

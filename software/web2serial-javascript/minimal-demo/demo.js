@@ -93,7 +93,7 @@ function add_message(str, alert_role) {
 }
 
 function add_response(str) {
-    $("#messages").html("<pre>" + str + "(" + str.length + " bytes)</pre>" + $("#messages").html());
+    $("#messages").html("<pre>" + str + " (" + str.length + " bytes)</pre>" + $("#messages").html());
 }
 
 // UI Update Helpers
