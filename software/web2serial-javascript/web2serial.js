@@ -28,10 +28,11 @@
  *             if (is_alive) { ... } else { ... }
  *         });
  *
- *         // Get a list of available serial devices
+ *         // Get a list of available serial devices.
+ *         // Optional argument: only_show_devices_with_description (default=false)
  *         web2serial.get_devices(function(device_list) {
  *             ...
- *         })
+ *         }[, only_show_devices_with_description])
  *
  *         // Open a connection to one of the devices
  *         socket = web2serial.open_connection(device_hash, baudrate);
@@ -146,12 +147,13 @@ var web2serial = {
         });
     },
 
-    get_devices: function(callback) {
+    get_devices: function(callback, only_devices_with_desc) {
         $.get("http://localhost:54321/devices", function( data ) {
             console.log(data);
             devices = new Array();
             var _devices = JSON.parse(data);
             for (var i=0; i<_devices.length; i++) {
+                if (only_devices_with_desc && (_devices[i][2] != "") && (_devices[i][2] != "n/a"))
                 devices.push(new Device(_devices[i][0], _devices[i][1], _devices[i][2], _devices[i][3]));
             }
             callback(devices);

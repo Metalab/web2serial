@@ -58,7 +58,10 @@ TODO
 ====
 
 web2serial.js
-* sending weird bytes doc
+* sending weird bytes doc (0xff et al)
+* sleep between serial write timeouts
+* close all connections on errors
+
 * Web2SerialSocket
   * error handling tests
 
