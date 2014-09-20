@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="imports/bootstrap.min.css" type="text/css"/>
+    <link rel="stylesheet" href="demo.css" type="text/css"/>
+
+    <script src="imports/jquery-2.1.1.min.js"></script>
+    <script src="imports/web2serial.js"></script>
+    <script src="demo-magicshifter.js"></script>
+
+    <title>web2serial.js magicshifter demo</title>
+</head>
+
+<body>
+    <div class="container">
+        <div id="alert-not-running" class="alert alert-danger" role="alert">web2serial does not seem to be running; please start the Python daemon (<a href="http://github.com/metalab/web2serial">more infos</a>)</div>
+        <div id="alert-running" class="alert alert-success" role="alert">web2serial is up and running (<a href="http://github.com/metalab/web2serial">more infos</a>)</div>
+
+        <h1>web2serial.js magicshifter demo</h1>
+
+        <div id="devices">
+            <div class="row">
+                <div class="col-md-6">
+                  <h2>Available Magic Shifters <a href="javascript:refresh_devices()">&#8635;</a></h2>
+                  <div id="devices-list"></div>
+                </div>
+
+            </div>
+        </div>
+
+        <div id="compose">
+            <form class="form-inline" role="form" id="inputform">
+                <div>Sector: <input type="text" class="form-control" id="input-sector" placeholder="1 .. 127" style="width:50%;"></div>
+                <div style="margin-top:12px;"><input type="file" id="input-file" id="exampleInputFile" value="Choose File"></div>
+                <div style="margin-top:12px;"><button type="button" id="input-upload" onclick="upload()" class="btn btn-default" disabled>Upload</button></div>
+            </form>
+        </div>
+
+        <div id="messages"></div>
+    </div>
+</body>
+</html>
