@@ -51,7 +51,7 @@ function connect(device_hash) {
     // Set event handlers
     socket.onmessage = function(data) {
         // Handle incoming bytes from the serial device
-        add_message("received: " + data, "info");
+        add_response(data);
     };
 
     socket.onopen = function(event) {
@@ -92,6 +92,10 @@ function add_message(str, alert_role) {
     $("#messages").html("<div class='alert alert-" + alert_role + "' role='alert'>" + str + "</div>" + $("#messages").html());
 }
 
+function add_response(str) {
+    $("#messages").html("<pre>" + str + "</pre>" + $("#messages").html());
+}
+
 // UI Update Helpers
 function updateui_connect(device_hash) {
     $(".device button").each(function() { $(this).removeClass().addClass("btn btn-default"); });
@@ -115,5 +119,5 @@ function updateui_connection_error(device, error_string) {
 function updateui_connection_closed(device) {
     $("#input").attr("disabled", "disabled");
     $("#input-btn").attr("disabled", "disabled");
-    add_message("closed: " + device.str, "info");
+    add_message("closed: " + device.str, "danger");
 }
