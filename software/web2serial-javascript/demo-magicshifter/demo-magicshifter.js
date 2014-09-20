@@ -27,7 +27,7 @@ $(function() {
         selected_file_url = URL.createObjectURL(event.target.files[0]);
 
         // Enable upload?
-        if (selected_device_hash && selected_file) {
+        if (selected_device_hash && selected_file_url) {
             $("#input-upload").removeAttr("disabled");
         }
     });
@@ -73,8 +73,13 @@ function upload() {
         // Connection to serial device has been successfully established
         updateui_connection_established(this.device, this.baudrate);
 
-        // magic_upload_to_shifter(sector, arraybuffer_of_file_content, socket, callback_when_done)
-        socket.send("MAGIC_PING");
+        magicUpload(parseInt($("#input-sector").val()), selected_file_url, this, function() {
+            // All done
+            add_message("Upload complete", "info");
+            socket.close();
+        });
+
+        // socket.send("MAGIC_PING");
     };
 
     socket.onerror = function(event) {
@@ -94,7 +99,7 @@ function select_device(device_hash) {
     $(".device button").each(function() { $(this).removeClass().addClass("btn btn-default"); });
     $("#device-" + device_hash).removeClass().addClass("btn btn-success");
 
-    if (selected_device_hash && selected_file) {
+    if (selected_device_hash && selected_file_url) {
         $("#input-upload").removeAttr("disabled");
     }
 }

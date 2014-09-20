@@ -1,3 +1,7 @@
+function ab2str(buf) {
+    return String.fromCharCode.apply(null, new Uint8Array(buf));
+}
+
 function getFromURL(url, responseType, cb) {
         var r = new XMLHttpRequest();
         r.open("GET", url, true);  
@@ -33,7 +37,8 @@ function TimeScedule() {
 }
 
 function magicUpload(sector, url, socket, cb) {
-    getFromURL(url, "arraybuffer", function(arraybufer) {   
+    console.log(sector, url, socket, cb);
+    getFromURL(url, "arraybuffer", function(arraybuffer) {   
         magicUploadArrayBuffer(sector, arraybuffer, socket, cb);
     });
 }
