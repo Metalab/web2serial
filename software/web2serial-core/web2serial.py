@@ -148,8 +148,8 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
 
         # Unpack
         j = json.loads(message)
-        data = str(j["msg"])
-        logging.info("web -> serial: %s" % repr(data))
+        data = bytearray(j["msg"], "UTF-8");
+        logging.info("web -> serial: %s (type=%s, len=%s)" % (repr(data), type(data), len(data)))
 
         # Send data to serial
         try:
@@ -158,9 +158,10 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         except Exception as e:
             # probably got disconnected
             logging.error(e)
-            message_for_websocket = { "error": str(e) }
+            message_for_websocket = { "error": repr(e) }
             self.write_message(json.dumps(message_for_websocket))
             self.close()
+            raise
 
     def on_close(self):
         """ Close serial and quit reader thread """

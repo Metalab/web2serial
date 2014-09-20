@@ -11,6 +11,9 @@ var socket;
 
 // Stuff to do when website is loaded
 $(function() {
+    var a = "\x01";
+    console.log("a='" + a + "', len=" + a.length);
+
     // Catch form input when user presses enter
     $("#inputform").submit(function() {
         send();
@@ -73,6 +76,15 @@ function send() {
     socket.send(msg);
     add_message("sent: " + msg, "info");
     $("#input").val("").select();
+}
+
+// Send message from input field to the serial device
+function send_bytes() {
+    socket.send("MAGIC_UPLOAD");
+    socket.send("\x01"); // 1 byte
+    socket.send("\x03"); // 1 byte
+    socket.send("\xff"); // 1 byte
+    socket.send("\xbb"); // 1 byte
 }
 
 // Helper to add messages to the html document
