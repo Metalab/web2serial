@@ -9,7 +9,8 @@ Directories
 
 * `software/web2serial-core`: Python app which bridges serial and websocket connections
 * `software/web2serial-javascript`: JavaScript API client for websites
-* `examples`: Examples of using web2serial.js: Minimal and [Magic Shifter](http://www.magicshifter.net) demo
+* `examples/websites`: 2 examples of using web2serial.js: Minimal and [Magic Shifter](http://www.magicshifter.net) demo
+* `examples/arduino`: Arduino test code for serial communication
 
 
 Getting web2serial up and running
@@ -29,7 +30,18 @@ Simply get a copy of web2serial and install the two dependencies [tornado](https
 You can now access the built-in web interface at http://0.0.0.0:54321 and talk with your serial devices. Furthermore
 we have a JavaScript API client which you can use to your own web2serial apps.
 
-Check out the live minimal demo: http://metalab.github.io/web2serial
+Check out the (minimalistic) live demos: http://metalab.github.io/web2serial/examples
+
+
+Using web2serial for custom websites
+------------------------------------
+
+This repository includes `web2serial.js`, a JavaScript API client which you for
+custom projects that communicate with serial devices. Take a look at the
+API documentation in the `web2serial.js` as well as at the example implementation:
+
+* https://github.com/Metalab/web2serial/blob/master/software/web2serial-javascript/web2serial.js
+* https://github.com/Metalab/web2serial/blob/master/examples/websites/minimal/demo.js
 
 
 web2serial-core REST Interface
@@ -53,24 +65,6 @@ Open a websocket connection to a specific serial device
     SCK /device/<device-hash>/open/<baudrate>
     
     Websocket address for opening a device by hash with a specific baudrate
-
-
-TODO
-====
-
-web2serial.js
-* sending weird bytes doc (0xff et al)
-* sleep between serial write timeouts
-* close all connections on errors
-
-* Web2SerialSocket
-  * error handling tests
-
-Next Steps
-* :54321 web interface - update from minimal design?, filenames
-* Internal website GUI design
-* Wrapper: Service, GUI
-* Installer, Uninstaller
 
 
 Authors & Contributors
