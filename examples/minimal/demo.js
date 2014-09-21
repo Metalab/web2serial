@@ -21,7 +21,7 @@ $(function() {
     web2serial.is_alive(function(is_alive) {
         if (is_alive) {
             $("#alert-running").show();
-            refresh_devices();
+            setTimeout(refresh_devices, 500);
         } else {
             $("#alert-not-running").show();
         }
@@ -35,6 +35,8 @@ function refresh_devices() {
         for (var i=0; i<device_list.length; i++) {
             $("#devices-list").append("<div class='device'><button type='button' id='device-" + device_list[i].hash + "' class='btn btn-default' onclick=\"connect('" + device_list[i].hash + "')\" title='click to connect'>" + device_list[i].device + " (" + device_list[i].desc + ", " + device_list[i].hwinfo + ")</button></div>");
         }
+
+        setTimeout(refresh_devices, 500);
     }, true);
 }
 

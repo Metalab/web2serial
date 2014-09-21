@@ -37,7 +37,7 @@ $(function() {
     web2serial.is_alive(function(is_alive) {
         if (is_alive) {
             $("#alert-running").show();
-            refresh_devices();
+            setTimeout(refresh_devices, 500);
         } else {
             $("#alert-not-running").show();
         }
@@ -57,6 +57,8 @@ function refresh_devices() {
         if (device_list.length == 1) {
             select_device(device_list[0].hash);
         }
+
+        setTimeout(refresh_devices, 500);
     }, true);
 }
 
