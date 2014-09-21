@@ -49,9 +49,7 @@ function refresh_devices() {
     web2serial.get_devices(function(device_list) {
         $("#devices-list").html("");
         for (var i=0; i<device_list.length; i++) {
-            if (device_list[i].desc == "Arduino Leonardo") {
-                $("#devices-list").append("<div class='device'><button type='button' id='device-" + device_list[i].hash + "' class='btn btn-default' onclick=\"select_device('" + device_list[i].hash + "')\" title='click to connect'>" + device_list[i].device + " (" + device_list[i].desc + ", " + device_list[i].hwinfo + ")</button></div>");
-            }
+            $("#devices-list").append("<div class='device'><button type='button' id='device-" + device_list[i].hash + "' class='btn btn-default' onclick=\"select_device('" + device_list[i].hash + "')\" title='click to connect'>" + device_list[i].device + " (" + device_list[i].desc + ", " + device_list[i].hwinfo + ")</button></div>");
         }
 
         if (device_list.length == 1) {
