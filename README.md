@@ -8,7 +8,8 @@ Directories
 -----------
 
 * `software/web2serial-core`: Python app which bridges serial and websocket connections
-* `software/web2serial-javascript`: JavaScript API client for websites to talk with a users `web2serial-core`
+* `software/web2serial-javascript`: JavaScript API client for websites
+* `examples`: Examples of using web2serial.js: Minimal and [Magic Shifter](http://www.magicshifter.net) demo
 
 
 Getting web2serial up and running
