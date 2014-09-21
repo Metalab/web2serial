@@ -25,7 +25,7 @@
         <div id="devices">
             <div class="row">
                 <div class="col-md-6">
-                  <h2>Serial Devices <a href="javascript:refresh_devices()">&#8635;</a></h2>
+                  <h2>Serial Devices</h2>
                   <div id="devices-list"></div>
                 </div>
 
@@ -40,7 +40,7 @@
             <form class="form-inline" role="form" id="inputform">
                 <input type="text" class="form-control" id="input" placeholder="bytes to send" style="width:50%;" disabled>
                 <button type="button" id="input-btn" onclick="send()" class="btn btn-default" disabled>Send</button>
-                <button type="button" id="input-btn" onclick="send_bytes()" class="btn btn-default">Send Bytes</button>
+                <!-- <button type="button" id="input-btn" onclick="send_bytes()" class="btn btn-default">Send Bytes</button> -->
                 <button type="button" id="input-btn" onclick="socket.close()" class="btn btn-default">Close</button>
             </form>
         </div>
