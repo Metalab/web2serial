@@ -153,8 +153,9 @@ var web2serial = {
             devices = new Array();
             var _devices = JSON.parse(data);
             for (var i=0; i<_devices.length; i++) {
-                if (only_devices_with_desc && (_devices[i][2] != "") && (_devices[i][2] != "n/a"))
-                devices.push(new Device(_devices[i][0], _devices[i][1], _devices[i][2], _devices[i][3]));
+                if (!only_devices_with_desc || (only_devices_with_desc && (_devices[i][2] != "") && (_devices[i][2] != "n/a"))) {
+                    devices.push(new Device(_devices[i][0], _devices[i][1], _devices[i][2], _devices[i][3]));
+                }
             }
             callback(devices);
         });
