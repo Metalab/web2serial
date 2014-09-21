@@ -8,6 +8,7 @@
 
 // Web2SerialSocket
 var socket;
+var buffer_response;
 
 // ...
 var selected_device_hash = false;
@@ -60,13 +61,16 @@ function refresh_devices() {
 }
 
 function upload() {
+    buffer_response = "";
+    $("#messages").html("");
+    
     // Create a Web2Serial WebSocket Connection
     socket = web2serial.open_connection(selected_device_hash, 9600);
 
     // Set event handlers
     socket.onmessage = function(data) {
         // Handle incoming bytes from the serial device
-        add_response(data);
+        buffer_response += data;
     };
 
     socket.onopen = function(event) {
@@ -75,7 +79,8 @@ function upload() {
 
         magicUpload(parseInt($("#input-sector").val()), selected_file_url, this, function() {
             // All done
-            add_message("Upload complete", "info");
+            add_message("<div>Upload complete</div><pre>" + buffer_response + "</pre>", "success");
+            // add_response(buffer_response);
             socket.close();
         });
 
@@ -115,8 +120,8 @@ function add_response(str) {
 
 // UI Update Helpers
 function updateui_connection_established(device, baudrate) {
-    add_message("opened: " + device.str + ", " + baudrate + " baud", "success");
-    $("#device-" + device.hash).removeClass().addClass("btn btn-success");
+    add_message("starting upload", "success");
+    // $("#device-" + device.hash).removeClass().addClass("btn btn-success");
     $("#input-sector").select();
 }
 
@@ -128,7 +133,6 @@ function updateui_connection_error(device, error_string) {
 function updateui_connection_closed(device) {
     $("#input").attr("disabled", "disabled");
     $("#input-btn").attr("disabled", "disabled");
-    add_message("closed: " + device.str, "danger");
 }
 
 
