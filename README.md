@@ -7,14 +7,16 @@ Proxy from web to serial, to flash devices and other fun things.
 Directories
 -----------
 
-* `software/web2serial-core`: Python web2serial service which handles serial and websocket connections
-* `software/web2serial-javascript`: JavaScript API client for websites to talk with a users `web2serial-core` daemon
+* `software/web2serial-core`: Python app which bridges serial and websocket connections
+* `software/web2serial-javascript`: JavaScript API client for websites
+* `examples/websites`: 2 examples of using web2serial.js: Minimal and [Magic Shifter](http://www.magicshifter.net) demo
+* `examples/arduino`: Arduino test code for serial communication
 
 
 Getting web2serial up and running
 ---------------------------------
 
-Just install the dependencies [tornado](https://github.com/tornadoweb/tornado) and [pyserial](http://pythonhosted.org/pyserial/), get a copy of the code and run it.
+Simply get a copy of web2serial and install the two dependencies [tornado](https://github.com/tornadoweb/tornado) and [pyserial](http://pythonhosted.org/pyserial/).
 
     # Install Python modules tornado and py2serial
     $ sudo easy_install tornado
@@ -22,84 +24,53 @@ Just install the dependencies [tornado](https://github.com/tornadoweb/tornado) a
     
     # Download and start web2serial
     $ git clone https://github.com/Metalab/web2serial.git
-    $ cd web2serial/web2serial
+    $ cd web2serial/web2serial-core/
     $ python web2serial.py
-    
-Now you can access the built-in web interface at http://0.0.0.0:54321 and talk with your serial devices.
+
+You can now access the built-in web interface at http://0.0.0.0:54321 and talk with your serial devices. Furthermore
+we have a JavaScript API client which you can use to your own web2serial apps.
+
+Check out the (minimalistic) live demos: http://metalab.github.io/web2serial/examples
 
 
-REST Interface
---------------
+Using web2serial for custom websites
+------------------------------------
 
-Heartbeat and check if web2serial is running
+This repository includes `web2serial.js`, a JavaScript API client which you for
+custom projects that communicate with serial devices. Take a look at the
+API documentation in the `web2serial.js` as well as at the example implementation:
+
+* https://github.com/Metalab/web2serial/blob/master/software/web2serial-javascript/web2serial.js
+* https://github.com/Metalab/web2serial/blob/master/examples/websites/minimal/demo.js
+
+
+web2serial-core REST Interface
+------------------------------
+
+Check if web2serial-core is running
 
     GET /ping
     
     Returns 'pong' (200 OK)
 
-Get a device list
+Get a list of available serial devices
 
     GET /devices
 
     Returns JSON array of devices (200 OK)    
     [[hash, device string, desc, hwid], ...]
 
-Websocket for web <--> serial communication
+Open a websocket connection to a specific serial device
 
     SCK /device/<device-hash>/open/<baudrate>
     
     Websocket address for opening a device by hash with a specific baudrate
 
 
-
-
-JavaScript Websocket Examples
-=============================
-
-jQuery GET example (http://api.jquery.com/jquery.get/):
-
-    var jqxhr = $.get("/ping", function() {
-        alert( "success" );
-    })
-    .done(function() {
-        alert( "second success" );
-    })
-    .fail(function() {
-        alert( "error" );
-    })
-    .always(function() {
-        alert( "finished" );
-    });
-
-
-Websocket JavaScript Example:
-
-    var ws = new WebSocket("ws://localhost:8888/websocket");
-    ws.onopen = function() {
-       ws.send("Hello, world");
-    };
-    ws.onmessage = function (evt) {
-       alert(evt.data);
-    };
-
-
-Inspirations
-
-* http://sourceforge.net/p/pyserial/code/HEAD/tree/trunk/pyserial/examples/tcp_serial_redirect.py
-
-
-TODO
-====
-
-* Internal website GUI design
-* Wrapper: Service, GUI
-* Installer, Uninstaller
-
-
 Authors & Contributors
 ======================
 
-metachris, overflo
+metachris, overflo, wizard23
 
 
 License

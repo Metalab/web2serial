@@ -3,21 +3,20 @@
 """
 web2serial.py
 
-Cross-platform web-to-serial proxy
+Proxy from web to serial and vice versa, to flash devices and other fun things.
 
+https://github.com/Metalab/web2serial
 """
 
 __author__ = "Chris Hager"
 __email__ = "chris@bitsworking.com"
 __version__ = "0.2"
 
-# CONFIG_FILE = "config.yaml"
-
 import sys
 import os
-# import yaml
 from optparse import OptionParser
 from pprint import pprint
+from time import sleep
 
 import logging
 import os.path
@@ -39,6 +38,8 @@ import serial.tools.list_ports
 # Port for the web interface
 PORT_WEB = 54321
 
+SERIAL_SEND_TIMEOUT = 0.001
+
 # Length of the device id hash
 DEVICE_ID_HASH_LENGTH = 8
 
@@ -46,6 +47,7 @@ DEVICE_ID_HASH_LENGTH = 8
 # Tornado Web Application Description
 class Application(tornado.web.Application):
     def __init__(self):
+        # URLs
         handlers = [
             (r"/", MainHandler),
             (r"/ping", PingHandler),
@@ -53,12 +55,13 @@ class Application(tornado.web.Application):
             (r"/device/([^/]+)/baudrate/([^/]+)", SerSocketHandler),
         ]
 
+        # Settings
         settings = dict(
-            cookie_secret="asdasdas87D*A8a7sd8T@*2",
             template_path=os.path.join(os.path.dirname(__file__), "templates"),
             static_path=os.path.join(os.path.dirname(__file__), "static"),
-            xsrf_cookies=True,
         )
+
+        # Init Web Application
         tornado.web.Application.__init__(self, handlers, **settings)
 
 
@@ -96,10 +99,11 @@ class MainHandler(tornado.web.RequestHandler):
         self.render("index.html", devices=get_com_ports())
 
 
-class PingHandler(tornado.web.RequestHandler):
+class PingHandler(SharedRequestHandler):
     def get(self):
         self.set_header("Access-Control-Allow-Origin", "*")
         self.write("pong")
+
 
 class DevicesHandler(SharedRequestHandler):
     def get(self):
@@ -143,23 +147,24 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         """ 
         JSON message from the websocket is unpacked, and the byte message sent to the serial connection.
         """
-        logging.info("got message '%s' from websocket", repr(message))
+        logging.info("msg from websocket: %s (len=%s)" % (repr(message), len(message)))
 
         # Unpack
         j = json.loads(message)
-        data = str(j["msg"])
-        logging.info("web -> serial: %s" % repr(data))
+        data = bytearray(j["msg"], "raw_unicode_escape");
+        logging.info("web -> serial: %s (len=%s)" % (repr(data), len(data)))
 
         # Send data to serial
         try:
             self.ser.write(data)
-            logging.info("successfully sent to serial connection: '%s'" % repr(data))
+            sleep(SERIAL_SEND_TIMEOUT)
         except Exception as e:
             # probably got disconnected
             logging.error(e)
-            message_for_websocket = { "error": str(e) }
+            message_for_websocket = { "error": repr(e) }
             self.write_message(json.dumps(message_for_websocket))
-            self.close()
+            # self.close()
+            raise
 
     def on_close(self):
         """ Close serial and quit reader thread """
@@ -187,27 +192,37 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
                     # escape outgoing data when needed (Telnet IAC (0xff) character)
                     # data = serial.to_bytes(self.rfc2217.escape(data))
                     message = { "msg": data }
-                    logging.info("message from serial to websocket: %s" % repr(message))
-                    self.write_message(json.dumps(message))
+                    logging.info("message from serial to websocket: %s (len=%s)" % (repr(message), len(message)))
+                    self.write_message(json.dumps(message, encoding="raw_unicode_escape"))
+
+            except serial.SerialException as e:
+                logging.error("%s", str(e))
+                message_for_websocket = { "error": str(e) }
+                if self.alive:
+                    self.write_message(json.dumps(message_for_websocket))
+
             except Exception as e:
                 # probably got disconnected
                 logging.error('%s' % (e,))
                 message_for_websocket = { "error": str(e) }
-                self.write_message(json.dumps(message_for_websocket))
-                break
+                if self.alive:
+                    self.write_message(json.dumps(message_for_websocket))
+                # self.close()
+                raise
                 
         self.alive = False
         logging.debug('reader thread terminated')
 
 
+# Get web2serial-core up and running
 def start(port):
-    # Parse command line arguments
+    # Have tornado parse command line arguments
     tornado.options.parse_command_line()
 
     # Initial output 
     logging.info("web2serial.py v%s" % __version__)
     logging.info("Com ports: %s" % get_com_ports())
-    logging.info("Starting server on port %s" % port)
+    logging.info("Listening on http://0.0.0.0:%s" % port)
 
     # Start of tornado web application, and ioloop blocking method
     app = Application()
