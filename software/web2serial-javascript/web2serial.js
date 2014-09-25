@@ -10,10 +10,11 @@
  *
  *     For an usage example see demo.js (live at http://metalab.github.io/web2serial)
  *
- * Contributors
+ * Developed in cooperation of
  *
- *     Chris Hager <chris@bitsworking.com>
- *     Overflo <flo@tekstix.com>
+ *     Hackerspaceshop (hackerspaceshop.com)
+ *     Bits Working (bitsworking.com)
+ *     Community at Metalab Hackerspace Vienna (metalab.at)
  *
  * License
  * 
@@ -151,7 +152,7 @@ var web2serial = {
 
     get_devices: function(callback, only_devices_with_desc) {
         $.get("http://localhost:54321/devices", function( data ) {
-            console.log(data);
+            // console.log(data);
             devices = new Array();
             var _devices = JSON.parse(data);
             for (var i=0; i<_devices.length; i++) {
@@ -173,4 +174,8 @@ var web2serial = {
                 return devices[i];
         }
     },
+
+    widget: function(elementId, options) {
+        widgetize(elementId, options);
+    }
 }
