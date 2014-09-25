@@ -13,8 +13,8 @@ Directories
 * `examples/arduino`: Arduino test code for serial communication
 
 
-Getting web2serial up and running
----------------------------------
+Getting web2serial-core up and running
+--------------------------------------
 
 Simply get a copy of web2serial and install the two dependencies [tornado](https://github.com/tornadoweb/tornado) and [pyserial](http://pythonhosted.org/pyserial/).
 
@@ -37,8 +37,14 @@ Using web2serial for custom websites
 ------------------------------------
 
 This repository includes `web2serial.js`, a JavaScript API client which you for
-custom projects that communicate with serial devices. Take a look at the
-API documentation in the `web2serial.js` as well as at the example implementation:
+custom projects to communicate with serial devices. T
+
+Perhaps the easiest way is using the `web2serial-widget.js` library. See:
+
+* https://github.com/Metalab/web2serial/blob/master/examples/websites-widget/minimal/index.html
+* https://github.com/Metalab/web2serial/blob/master/software/web2serial-javascript/web2serial-widget.js
+
+And this is the underlying `web2serial.js` API client and example implementation:
 
 * https://github.com/Metalab/web2serial/blob/master/software/web2serial-javascript/web2serial.js
 * https://github.com/Metalab/web2serial/blob/master/examples/websites/minimal/demo.js

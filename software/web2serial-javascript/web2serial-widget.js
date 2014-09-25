@@ -4,6 +4,7 @@ var Web2SerialWidget = function(elementId, userOptions) {
     // Default options
     var options = {
         autoConnect: true,  // if only 1 device
+        hideUndefinedDevices: false,
 
         baudrate: 9600,
         onopen: function(device_hash, socket) { console.log("web2serial-widget: onopen(" + device_hash + ")"); },
@@ -97,7 +98,7 @@ var Web2SerialWidget = function(elementId, userOptions) {
                     connect(device_list[0].hash);
                 }
             }
-        }, true);
+        }, options.hideUndefinedDevices);
     }
 
     function connect(device_hash) {
