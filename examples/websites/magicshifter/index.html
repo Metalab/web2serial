@@ -10,7 +10,10 @@
 
     <script src="imports/jquery-2.1.1.min.js"></script>
     <script src="imports/web2serial.js"></script>
+    <script src="magicshifter.js"></script>
     <script src="demo.js"></script>
+
+    <title>web2serial.js magicshifter demo</title>
 </head>
 
 <body>
@@ -18,26 +21,23 @@
         <div id="alert-not-running" class="alert alert-danger" role="alert">web2serial does not seem to be running; please start the Python daemon (<a href="http://github.com/metalab/web2serial">more infos</a>)</div>
         <div id="alert-running" class="alert alert-success" role="alert">web2serial is up and running (<a href="http://github.com/metalab/web2serial">more infos</a>)</div>
 
-        <h1>web2serial.js demo</h1>
+        <h1>web2serial.js magicshifter demo</h1>
 
         <div id="devices">
             <div class="row">
                 <div class="col-md-6">
-                  <h2>Serial Devices <a href="javascript:refresh_devices()">&#8635;</a></h2>
+                  <h2>Available Magic Shifters</h2>
                   <div id="devices-list"></div>
                 </div>
 
-                <div class="col-md-6">
-                    <h2>Baudrate</h2>
-                    <input type="text" class="form-control" id="input-baudrate" placeholder="baud" value="9600" style="width:50%;">
-                </div>
             </div>
         </div>
 
         <div id="compose">
             <form class="form-inline" role="form" id="inputform">
-                <input type="text" class="form-control" id="input" placeholder="bytes to send" style="width:50%;" disabled>
-                <button type="button" id="input-btn" onclick="send()" class="btn btn-default" disabled>Send</button>
+                <div>Sector: <input type="text" class="form-control" id="input-sector" placeholder="1 .. 127" value="1" style="width:50%;"></div>
+                <div style="margin-top:12px;"><input type="file" id="input-file" id="exampleInputFile" value="Choose File"></div>
+                <div style="margin-top:12px;"><button type="button" id="input-upload" onclick="upload()" class="btn btn-default" disabled>Upload</button></div>
             </form>
         </div>
 

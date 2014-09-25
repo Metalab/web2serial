@@ -51,8 +51,6 @@
  *         socket.onerror(event) ... when a connection had an error
  *         socket.onclose(event) ... when a connection has been closed
  */
- // Requires jquery
-if ("undefined" == typeof jQuery) throw new Error("web2serial.js requires jQuery");
 
 // Cache of found serial devices
 var devices;
