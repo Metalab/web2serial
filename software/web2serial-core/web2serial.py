@@ -3,9 +3,19 @@
 """
 web2serial.py
 
-Proxy from web to serial and vice versa, to flash devices and other fun things.
+    Proxy from web to serial and vice versa, to flash devices and other fun things.
 
-https://github.com/Metalab/web2serial
+    https://github.com/Metalab/web2serial
+
+ Developed in cooperation of
+ 
+     Hackerspaceshop (hackerspaceshop.com)
+     Bits Working (bitsworking.com)
+     Community at Metalab Hackerspace Vienna (metalab.at)
+
+License
+
+    LGPLv3 (see `LICENSE`)
 """
 
 __author__ = "Chris Hager"

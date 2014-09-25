@@ -10,10 +10,11 @@
  *
  *     For an usage example see demo.js (live at http://metalab.github.io/web2serial)
  *
- * Contributors
+ * Developed in cooperation of
  *
- *     Chris Hager <chris@bitsworking.com>
- *     Overflo <flo@tekstix.com>
+ *     Hackerspaceshop (hackerspaceshop.com)
+ *     Bits Working (bitsworking.com)
+ *     Community at Metalab Hackerspace Vienna (metalab.at)
  *
  * License
  * 
@@ -51,6 +52,8 @@
  *         socket.onerror(event) ... when a connection had an error
  *         socket.onclose(event) ... when a connection has been closed
  */
+ // Requires jquery
+if ("undefined" == typeof jQuery) throw new Error("web2serial.js requires jQuery");
 
 // Cache of found serial devices
 var devices;
@@ -102,8 +105,8 @@ var Web2SerialSocket = function(device_hash, baudrate) {
 
     // Handle message from web2serial-core. Parse JSON, check if error, ...
     this.socket.onmessage = function(event) {
-        console.log("websocket message");
-        console.log(event);
+        // console.log("websocket message");
+        // console.log(event);
 
         o = JSON.parse(event.data);
         if ("error" in o) {
@@ -118,19 +121,19 @@ var Web2SerialSocket = function(device_hash, baudrate) {
 
     // Handle connection-opened event
     this.socket.onopen = function(event) {
-        console.log(event);
+        // console.log(event);
         parent.onopen(event);
     };
 
     // Handle error event
     this.socket.onerror = function(event) {
-        console.log(event);
+        // console.log(event);
         parent.onerror(event);
     };
 
     // Handle close event
     this.socket.onclose = function(event) {
-        console.log(event);
+        // console.log(event);
         parent.onclose(event);
     };
 }
@@ -149,7 +152,7 @@ var web2serial = {
 
     get_devices: function(callback, only_devices_with_desc) {
         $.get("http://localhost:54321/devices", function( data ) {
-            console.log(data);
+            // console.log(data);
             devices = new Array();
             var _devices = JSON.parse(data);
             for (var i=0; i<_devices.length; i++) {
@@ -171,4 +174,8 @@ var web2serial = {
                 return devices[i];
         }
     },
+
+    widget: function(elementId, options) {
+        widgetize(elementId, options);
+    }
 }

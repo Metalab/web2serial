@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style type="text/css">
+            html, body { height: 100%; margin: 0; padding: 20px;}
+
+            /* Widget Styles */
+            .error { border: 1px solid red !important; }
+            .success { border: 1px solid green !important; }
+            .connected { border: 1px solid green !important; }
+            .disconnected { border: 1px solid #2F34DE !important; }
+
+            #widget {
+                border:1px solid grey;
+                padding:10px 20px;
+                margin:20px 0px;
+            }
+
+            #widget div {
+                margin:10px 0px;
+                padding:10px;
+                border:1px solid grey;
+            }
+        </style>
+        <script type="text/javascript" src="jquery-2.1.1.min.js"></script>
+        <script type="text/javascript" src="web2serial.js"></script>
+        <script type="text/javascript" src="web2serial-widget.js"></script>
+        <script type="text/javascript">
+        var ws1;
+
+        $(function() {
+            web2serial.widget("widget", {
+                autoConnect: true,
+                baudrate: 9600,
+                onopen: function(device_hash, socket) {
+                    console.log("OPEN!!");
+                    console.log(device_hash);
+                    console.log(socket);
+                    ws1 = socket;
+                    // socket2.send("HELLO");
+                    $("#btn-send").removeAttr('disabled');
+                },
+                onclose: function(event) {
+                    $("#btn-send").attr('disabled', 'disabled');
+                },
+                onerror: function(event) {
+                    console.log(event);
+                },
+                onmessage: function(data) {
+                    console.log("> " + data);
+                },
+            });    
+        });
+
+        function sendStuff() {
+            ws1.send("\xff\xaa\xfe");
+            ws1.close();
+            alert("Successfully sent the bytes");
+        }
+        </script>
+    </head>
+
+    <body>
+        <h1>My Funky Serial Upload</h1>
+        <p>Upload the three bytes 0xff, 0xaa and 0xfe</p>
+
+        <div id="widget"></div>
+
+        <button id="btn-send" onclick="sendStuff()" disabled>Send Stuff</button>
+    </body>
+</html>
