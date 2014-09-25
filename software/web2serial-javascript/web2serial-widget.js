@@ -13,7 +13,6 @@ var el;
 var el_core_status;
 var el_status;
 var el_devices;
-var el_actions;
 var el_messages;
 
 var devices_last;
@@ -34,12 +33,15 @@ function widgetize(elementId, userOptions) {
     for (var attrname in userOptions) { options[attrname] = userOptions[attrname]; }
 
     el = $("#" + elementId);
-    el.html("<div id='web2serial-core-status'></div><div id='web2serial-status'></div><div id='web2serial-devices'></div><div id='web2serial-actions'></div><div id='web2serial-messages'></div>");
+    el.html("");
+    el.append("<div id='web2serial-core-status'></div>");
+    el.append("<div id='web2serial-devices'></div>");
+    el.append("<div id='web2serial-status'></div>");
+    el.append("<div id='web2serial-messages'></div>");
 
     el_core_status = el.find("#web2serial-core-status");
     el_status = el.find("#web2serial-status");
     el_devices = el.find("#web2serial-devices");
-    el_actions = el.find("#web2serial-actions");
     el_messages = el.find("#web2serial-messages");
 
     set_state(STATE_DISCONNECTED);
@@ -51,15 +53,25 @@ function set_state(newState, newStateInfo) {
     state_info = newStateInfo;
     el_status.html(state);
     if (state_info) el_status.append( + " " + state_info);
+
+    if (state == STATE_DISCONNECTED) {
+        el_status.removeClass().addClass("disconnected");
+    } else if (state == STATE_CONNECTED) {
+        el_status.removeClass().addClass("connected");        
+    } else if (state == STATE_ERROR) {
+        el_status.removeClass().addClass("error");        
+    } 
 }
 
 function is_alive() {
     web2serial.is_alive(function(alive) {
         if (alive) {
             el_core_status.html("web2serial is up and running");
+            el_core_status.removeClass().addClass("success");
             refresh_devices();
         } else {
             el_core_status.html("error: web2serial down");
+            el_core_status.removeClass().addClass("error");
         }
         // setTimeout(is_alive, 5000);
     });
