@@ -33,12 +33,10 @@ var Web2SerialWidget = function(elementId, userOptions) {
     el.append("<div id='web2serial-core-status'></div>");
     el.append("<div id='web2serial-devices'></div>");
     el.append("<div id='web2serial-status'></div>");
-    el.append("<div id='web2serial-messages'></div>");
 
     var el_core_status = el.find("#web2serial-core-status");
     var el_status = el.find("#web2serial-status");
     var el_devices = el.find("#web2serial-devices");
-    var el_messages = el.find("#web2serial-messages");
 
     // Update UI and start web2serial interaction with checking if core is running (is_alive())
     set_state(STATE_DISCONNECTED);
