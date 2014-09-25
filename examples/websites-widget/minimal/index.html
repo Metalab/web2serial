@@ -29,15 +29,11 @@
         var ws1;
 
         $(function() {
-            web2serial.widget("widget", {
+            var widget = new Web2SerialWidget("widget", {
                 autoConnect: true,
                 baudrate: 9600,
                 onopen: function(device_hash, socket) {
-                    console.log("OPEN!!");
-                    console.log(device_hash);
-                    console.log(socket);
                     ws1 = socket;
-                    // socket2.send("HELLO");
                     $("#btn-send").removeAttr('disabled');
                 },
                 onclose: function(event) {
