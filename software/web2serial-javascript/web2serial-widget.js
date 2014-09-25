@@ -1,4 +1,4 @@
-var TIMEOUT_IS_ALIVE_POLL = 1000000;
+var TIMEOUT_IS_ALIVE_POLL = 1000;
 
 var Web2SerialWidget = function(elementId, userOptions) {
     // Default options
