@@ -6,7 +6,15 @@
 
 
 
+
+
+
 #include "Timer.h"                     //http://github.com/JChristensen/Timer
+
+
+#include <SoftwareSerial.h>
+#include <BluetoothSerial.h>
+
 
 const int LED1 = 12;                    //connect one LED to this pin (with appropriate current-limiting resistor of course)
 const int LED2 = 13;                    //connect another LED to this pin (don't forget the resistor)
@@ -21,8 +29,8 @@ String readString;
 
 void setup(void)
 {
-  
-   Serial.begin(9600);
+   BTSerial.begin(9600);
+//   Serial.begin(9600);
  //  while (!Serial) {
  //   ; // wait for serial port to connect. Needed for Leonardo only
  //  }
@@ -38,10 +46,10 @@ void loop(void)
 {
   
   
-  while (Serial.available()) {
+  while (BTSerial.available()) {
     delay(3);  //delay to allow buffer to fill 
-    if (Serial.available() >0) {
-      char c = Serial.read();  //gets one byte from serial buffer
+    if (BTSerial.available() >0) {
+      char c = BTSerial.read();  //gets one byte from serial buffer
       readString += c; //makes the string readString
     } 
   }
@@ -75,6 +83,12 @@ void loop(void)
         t2= t.oscillate(LED2, PERIOD2, HIGH);
       }         
            
+           
+      BTSerial.print("New values: ");     
+      BTSerial.print(PERIOD1);
+      BTSerial.print(" - ");     
+      BTSerial.println(PERIOD2);
+   
  
       readString="";
    

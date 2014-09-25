@@ -73,7 +73,7 @@ function is_alive() {
             el_core_status.html("error: web2serial down");
             el_core_status.removeClass().addClass("error");
         }
-        // setTimeout(is_alive, 5000);
+         setTimeout(is_alive, 1000);
     });
 }
 
@@ -103,7 +103,7 @@ function refresh_devices() {
                 connect(device_list[0].hash);
             }
         }
-    }, true);
+    }, false);
 }
 
 function connect(device_hash) {

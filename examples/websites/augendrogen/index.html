@@ -6,10 +6,53 @@
   <link rel="stylesheet" href="imports/jquery-ui.css">
   <link rel="stylesheet" href="./styles.css">
   <style>#slider { margin: 10px; }	</style>
+
   <script src="imports/jquery-2.1.1.min.js"></script>
   <script src="imports/jquery-ui.js"></script>
   <script src="web2serial.js"></script>
+  <script src="web2serial-widget.js"></script>
 
+
+        <script type="text/javascript">
+        var ws1;
+
+        $(function() {
+            web2serial.widget("widget", {
+                autoConnect: true,
+                baudrate: 9600,
+                onopen: function(device_hash, socket) {
+                    console.log("OPEN!!");
+                    console.log(device_hash);
+                    console.log(socket);
+                    ws1 = socket;
+                    // socket2.send("HELLO");
+
+
+                    $( "#slider1" ).slider( "option", { disabled: false } );
+                    $( "#slider2" ).slider( "option", { disabled: false } );
+
+                },
+                onclose: function(event) {
+                    $( "#slider1" ).slider( "option", { disabled: true } );
+                    $( "#slider2" ).slider( "option", { disabled: true } );
+
+
+                },
+                onerror: function(event) {
+                    console.log(event);
+                },
+                onmessage: function(data) {
+                    console.log("> " + data);
+                },
+            });    
+        });
+
+        function sendStuff() {
+            ws1.send("\xff\xaa\xfe");
+            ws1.close();
+            alert("Successfully sent the bytes");
+        }
+        </script>
 
 
 </head>
@@ -34,6 +77,8 @@
 
 
 
+<div id="widget"></div>
+
 <div id="socket_response"></div>
 
 
@@ -45,8 +90,8 @@
 
 
 
-$( "#slider1" ).slider({ min:1, max: 200,  slide: slider_slided,  change: slider_changed, orientation: "vertical"});
-$( "#slider2" ).slider({ min:1, max: 200,  slide: slider_slided,  change: slider_changed, orientation: "vertical"});
+$( "#slider1" ).slider({ min:20, max: 200,  slide: slider_slided,  change: slider_changed, orientation: "vertical", disabled: true });
+$( "#slider2" ).slider({ min:20, max: 200,  slide: slider_slided,  change: slider_changed, orientation: "vertical", disabled: true });
 
 
 
@@ -84,6 +129,10 @@ $("#"+current_slider+"_display").html(ui.value);
 
 
 
+
+
+
+
 function send_serial()
 {
 
@@ -98,52 +147,13 @@ function send_serial()
  
 
  console.log("Sending: " + serialstring);
-
-socket.send(web2serial.jsonify(serialstring));
+ws1.send(serialstring);
 
 }
 
 
 
 
-
-
-
-$( document ).ready(load());
-
-var socket;
-
-function load() {
-    web2serial.get_devices(show_devices);
-}
-
-function show_devices(device_list) {
-    // Callback after web2serial.get_devices
-    //$("#devices").append(JSON.stringify(device_list));
-
-    // Open WebSocket to last device in the list
-    var hash = device_list[device_list.length - 1].hash;
-    socket = web2serial.open_connection(hash, 9600,  on_message);
-
-    // Handle error event
-    socket.onerror = function(event) {
-      console.log("onerror");
-      console.log(event);
-    }
-
-    // Handle close event
-    socket.onclose = function(event) {
-      console.log("onclose");
-      console.log(event);
-    }
-
-    // Use `socket.send(web2serial.jsonify(data))` to send stuff to the serial connection
-}
-
-function on_message(event) {
-      console.log("websocket event: " + event.data);
-      $("#socket_response").html(event.data);
-  }
 
 
 
