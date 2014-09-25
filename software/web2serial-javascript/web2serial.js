@@ -105,8 +105,8 @@ var Web2SerialSocket = function(device_hash, baudrate) {
 
     // Handle message from web2serial-core. Parse JSON, check if error, ...
     this.socket.onmessage = function(event) {
-        console.log("websocket message");
-        console.log(event);
+        // console.log("websocket message");
+        // console.log(event);
 
         o = JSON.parse(event.data);
         if ("error" in o) {
@@ -121,19 +121,19 @@ var Web2SerialSocket = function(device_hash, baudrate) {
 
     // Handle connection-opened event
     this.socket.onopen = function(event) {
-        console.log(event);
+        // console.log(event);
         parent.onopen(event);
     };
 
     // Handle error event
     this.socket.onerror = function(event) {
-        console.log(event);
+        // console.log(event);
         parent.onerror(event);
     };
 
     // Handle close event
     this.socket.onclose = function(event) {
-        console.log(event);
+        // console.log(event);
         parent.onclose(event);
     };
 }
