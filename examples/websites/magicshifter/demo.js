@@ -33,31 +33,41 @@ $(function() {
         }
     });
 
+    is_alive();
+});
+
+
+function is_alive() {
     // Check whether web2serial-core is running
-    web2serial.is_alive(function(is_alive) {
-        if (is_alive) {
+    web2serial.is_alive(function(alive) {
+        if (alive) {
             $("#alert-running").show();
-            setTimeout(refresh_devices, 500);
+            refresh_devices();
         } else {
             $("#alert-not-running").show();
         }
-    });
-});
+        setTimeout(is_alive, 500);
+    });    
+}
 
 // Refresh list of devices
 function refresh_devices() {
     web2serial.get_devices(function(device_list) {
+        // If nothing changed, we do nothing
+        if (JSON.stringify(device_list) == _devices_last) { return; }
+        _devices_last = JSON.stringify(device_list);
+
+        // Update list of devices
         $("#devices-list").html("");
         for (var i=0; i<device_list.length; i++) {
             $("#devices-list").append("<div class='device'><button type='button' id='device-" + device_list[i].hash + "' class='btn btn-default' onclick=\"select_device('" + device_list[i].hash + "')\" title='click to connect'>" + device_list[i].device + " (" + device_list[i].desc + ", " + device_list[i].hwinfo + ")</button></div>");
         }
 
+        // If only 1 then autoselect
         if (device_list.length == 1) {
             select_device(device_list[0].hash);
         }
-
-        setTimeout(refresh_devices, 500);
-    }, true);
+   }, true);
 }
 
 function upload() {
