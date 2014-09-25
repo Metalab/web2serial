@@ -207,9 +207,12 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
 
             except serial.SerialException as e:
                 logging.error("%s", str(e))
-                message_for_websocket = { "error": str(e) }
-                if self.alive:
-                    self.write_message(json.dumps(message_for_websocket))
+                # message_for_websocket = { "error": str(e) }
+                # if self.alive:
+                #    self.write_message(json.dumps(message_for_websocket))
+                self.close()
+                raise
+
 
             except Exception as e:
                 # probably got disconnected
