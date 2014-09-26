@@ -98,6 +98,7 @@ var Web2SerialSocket = function(device_hash, baudrate) {
     this.baudrate = baudrate;
     this.device = web2serial.device_by_hash(device_hash);
     this.url = "ws://localhost:54321/device/" + this.device.hash + "/baudrate/" + baudrate;
+    console.log("connect: " + this.url);
     this.socket = new WebSocket(this.url);
 
     // make `this` accessible for inner class methods

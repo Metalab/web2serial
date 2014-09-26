@@ -1,3 +1,24 @@
+/**
+ * web2serial-widget.js: Widget for web2serial which makes it easy to choose a device
+ * and exchange data with serial devices. Recommended approach to use web2serial as
+ * a developer.
+ *
+ * Developed in cooperation of
+ *
+ *     Hackerspaceshop (hackerspaceshop.com)
+ *     Bits Working (bitsworking.com)
+ *     Community at Metalab Hackerspace Vienna (metalab.at)
+ *
+ * License
+ * 
+ *     LGPLv3 (see `LICENSE`)
+ *
+ * Documentation
+ *
+ *     Take a look at the example implementation at
+ *     https://github.com/Metalab/web2serial/blob/master/examples/websites-widget/minimal/index.html
+ */
+
 var TIMEOUT_IS_ALIVE_POLL = 1000;
 
 var Web2SerialWidget = function(elementId, userOptions) {
@@ -26,11 +47,11 @@ var Web2SerialWidget = function(elementId, userOptions) {
     var state = STATE_DISCONNECTED;
     var state_info = "";
 
-    var socket;
+    this.socket = undefined;
     var devices_last;
+    var device_hash_connected;  // hash of last connected device
 
     var el = $("#" + elementId);
-    el.html("");
     el.append("<div id='web2serial-core-status'></div>");
     el.append("<div id='web2serial-devices'></div>");
     el.append("<div id='web2serial-status'></div>");
@@ -39,15 +60,27 @@ var Web2SerialWidget = function(elementId, userOptions) {
     var el_status = el.find("#web2serial-status");
     var el_devices = el.find("#web2serial-devices");
 
+    var parent = this;
+
     // Update UI and start web2serial interaction with checking if core is running (is_alive())
     set_state(STATE_DISCONNECTED);
     is_alive();
+
+    this.setBaudRate = function(baudRate) {
+        options.baudrate = parseInt(baudRate);
+        console.log("baudrate set to " + options.baudrate);
+
+        if (state == STATE_CONNECTED) {
+            if (this.socket) this.socket.close();
+            this.connect(device_hash_connected);
+        }
+    }
 
     function set_state(newState, newStateInfo) {
         state = newState;
         state_info = newStateInfo;
         el_status.html(state);
-        if (state_info) el_status.append( + " " + state_info);
+        if (state_info) el_status.append(" " + state_info);
 
         if (state == STATE_DISCONNECTED) {
             el_status.removeClass().addClass("disconnected");
@@ -85,7 +118,7 @@ var Web2SerialWidget = function(elementId, userOptions) {
             }
 
             el_devices.find("input").change(function() {
-                connect(this.id);
+                parent.connect(this.id);
             })
 
             if (device_list.length == 0) {
@@ -101,30 +134,36 @@ var Web2SerialWidget = function(elementId, userOptions) {
         }, options.hideUndefinedDevices);
     }
 
-    function connect(device_hash) {
+    this.connect = function(device_hash) {
         set_state(STATE_CONNECTING);
 
-        // Open the WebSocket
-        socket = web2serial.open_connection(device_hash, options.baudrate);
+        // Create the Web2SerialSocket
+        this.socket = web2serial.open_connection(device_hash, options.baudrate);
 
-        // set WebSocket event handlers
-        socket.onopen = function(event) {
-            set_state(STATE_CONNECTED);
-            options.onopen(device_hash, this);
+        // Set Web2SerialSocket event handlers
+        this.socket.onopen = function(event) {
+            device_hash_connected = device_hash;
+            set_state(STATE_CONNECTED, "(" + options.baudrate + " baud)");
+            el_devices.find("#" + device_hash).prop('checked', true);
+
+            options.onopen(parent.socket);
         };
 
-        socket.onclose = function(event) {
+        this.socket.onclose = function(event) {
+            // console.log("web2serial socket onclose", event);
             set_state(STATE_DISCONNECTED);
             el_devices.find("input").prop('checked', false);
+
             options.onclose(event);
         };    
 
-        socket.onerror = function(event) {
+        this.socket.onerror = function(event) {
             set_state(STATE_ERROR);
+
             options.onerror(event);
         };
 
-        socket.onmessage = function(data) {
+        this.socket.onmessage = function(data) {
             options.onmessage(data);
         };
     }
