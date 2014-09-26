@@ -19,23 +19,28 @@
  *     https://github.com/Metalab/web2serial/blob/master/examples/websites-widget/minimal/index.html
  */
 
-var TIMEOUT_IS_ALIVE_POLL = 1000;
+var TIMEOUT_POLL_DEVICES = 1000;
+
+var defaultOptions = {
+    // Automatically connect if only 1 serial device is found
+    autoConnect: true,
+
+    // Hide all devices with "n/a" as description
+    hideUndefinedDevices: false,
+
+    // Baudrate
+    baudrate: 11400,
+
+    // Event handlers
+    onopen: function(socket) { console.log("web2serial-widget: onopen(..)", socket); },
+    onclose: function(event) { console.log("web2serial-widget: onclose(..)", event); },
+    onerror: function(event) { console.log("web2serial-widget: onerror(..)", event); },
+    onmessage: function(data) { console.log("web2serial-widget: onmessage(" + data + ")"); },
+};
 
 var Web2SerialWidget = function(elementId, userOptions) {
-    // Default options
-    var options = {
-        autoConnect: true,  // if only 1 device
-        hideUndefinedDevices: false,
-
-        baudrate: 9600,
-        onopen: function(device_hash, socket) { console.log("web2serial-widget: onopen(" + device_hash + ")"); },
-        onclose: function(event) { console.log("web2serial-widget: onclose(" + event + ")"); },
-        onerror: function(event) { console.log("web2serial-widget: onerror(" + event + ")"); },
-        onmessage: function(data) { console.log("web2serial-widget: onmessage(" + data + ")"); },
-    };
-
-    // Overwrite default options with user supplied options
-    for (var attrname in userOptions) { options[attrname] = userOptions[attrname]; }
+    // Set options: userOptions if specified, else default options
+    var options = $.extend({}, defaultOptions, userOptions || {});
 
     // states
     var STATE_DISCONNECTED = "disconnected";
@@ -66,6 +71,9 @@ var Web2SerialWidget = function(elementId, userOptions) {
     set_state(STATE_DISCONNECTED);
     is_alive();
 
+    // setBaudRate(baudrate) changes the baudrate. If a serial device is connected,
+    // the connection will be closed and a new connection with the new baudrate
+    // will be established.
     this.setBaudRate = function(baudRate) {
         options.baudrate = parseInt(baudRate);
         console.log("baudrate set to " + options.baudrate);
@@ -76,6 +84,7 @@ var Web2SerialWidget = function(elementId, userOptions) {
         }
     }
 
+    // Internal: Widget UI state update
     function set_state(newState, newStateInfo) {
         state = newState;
         state_info = newStateInfo;
@@ -91,49 +100,57 @@ var Web2SerialWidget = function(elementId, userOptions) {
         } 
     }
 
+    // Check whether web2serial-core.py is running on the client computer
     function is_alive() {
         web2serial.is_alive(function(alive) {
             if (alive) {
-                el_core_status.html("web2serial is up and running");
+                el_core_status.html("<a href='https://github.com/Metalab/web2serial'>web2serial</a> is up and running");
                 el_core_status.removeClass().addClass("success");
                 refresh_devices();
             } else {
-                el_core_status.html("error: web2serial down");
+                el_core_status.html("error: <a href='https://github.com/Metalab/web2serial'>web2serial</a> down");
                 el_core_status.removeClass().addClass("error");
             }
-            setTimeout(is_alive, TIMEOUT_IS_ALIVE_POLL);
+            setTimeout(is_alive, TIMEOUT_POLL_DEVICES);
         });
     }
 
+    // Get a list of connected serial devices
     function refresh_devices() {
         web2serial.get_devices(function(device_list) {
+            // Only do things if list of devices has changed since last time
             if (JSON.stringify(device_list) == devices_last) {
                 return;
             }
+
+            // Remember received list of devices
             devices_last = JSON.stringify(device_list);
 
+            // Update UI with found devices
             el_devices.html("");
             for (var i=0; i<device_list.length; i++) {
                 el_devices.append('<input type="radio" name="device" value="' + device_list[i].hash + '" id="' + device_list[i].hash + '" /> <label for="' + device_list[i].hash + '">' + device_list[i].device + " (" + device_list[i].desc + ", " + device_list[i].hwinfo + ')</label><br>');
             }
 
+            // Set click handlers to connect to the serial device
             el_devices.find("input").change(function() {
                 parent.connect(this.id);
-            })
+            });
 
+            // No serial devices found...
             if (device_list.length == 0) {
                 el_devices.html("no devices found");
             }
 
-            if (device_list.length == 1) {
+            // If only one device, and autoConnect, then autoconnect... derp
+            if (device_list.length == 1 && options.autoConnect) {
                 el_devices.find("#" + device_list[0].hash).prop('checked', true);
-                if (options.autoConnect) {
-                    connect(device_list[0].hash);
-                }
+                connect(device_list[0].hash);
             }
         }, options.hideUndefinedDevices);
     }
 
+    // Establish a connection to a specific serial device
     this.connect = function(device_hash) {
         set_state(STATE_CONNECTING);
 
