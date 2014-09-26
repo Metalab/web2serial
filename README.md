@@ -9,8 +9,9 @@ Directories
 
 * `software/web2serial-core`: Python app which bridges serial and websocket connections
 * `software/web2serial-javascript`: JavaScript API client for websites
-* `examples/websites`: 2 examples of using web2serial.js: Minimal and [Magic Shifter](http://www.magicshifter.net) demo
-* `examples/arduino`: Arduino test code for serial communication
+* `examples/website-widget`: Example of how to use the web2serial widget (`web2serial-widget.js`)
+* `examples/websites`: Two examples of using `web2serial.js`: Generic and Magic Shifter
+* `examples/arduino`: Arduino projects for serial communication
 
 
 Getting web2serial-core up and running
@@ -26,11 +27,6 @@ Simply get a copy of web2serial and install the two dependencies [tornado](https
     $ git clone https://github.com/Metalab/web2serial.git
     $ cd web2serial/web2serial-core/
     $ python web2serial.py
-
-You can now access the built-in web interface at http://0.0.0.0:54321 and talk with your serial devices. Furthermore
-we have a JavaScript API client which you can use to your own web2serial apps.
-
-Check out the (minimalistic) live demos: http://metalab.github.io/web2serial/examples
 
 
 Using web2serial for custom websites
@@ -49,9 +45,15 @@ And this is the underlying `web2serial.js` API client and example implementation
 * https://github.com/Metalab/web2serial/blob/master/software/web2serial-javascript/web2serial.js
 * https://github.com/Metalab/web2serial/blob/master/examples/websites/minimal/demo.js
 
+Live demos can be found here:
 
-web2serial-core REST Interface
-------------------------------
+* http://metalab.github.io/web2serial/examples/websites/minimal
+* http://metalab.github.io/web2serial/examples/websites/magicshifter
+* http://metalab.github.io/web2serial/examples/website-widget
+
+
+web2serial-core.py REST Interface
+---------------------------------
 
 Check if web2serial-core is running
 
@@ -76,7 +78,10 @@ Open a websocket connection to a specific serial device
 Authors & Contributors
 ======================
 
-metachris, overflo, wizard23
+* Overflo (http://www.hackerspaceshop.com)
+* Chris Hager (http://www.bitsworking.com)
+* wizard23 (http://www.magicshifter.net)
+* Community at the Metalab Vienna Hackerspace
 
 
 License
