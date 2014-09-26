@@ -110,6 +110,8 @@ var Web2SerialWidget = function(elementId, userOptions) {
             } else {
                 el_core_status.html("error: <a href='https://github.com/Metalab/web2serial'>web2serial</a> down");
                 el_core_status.removeClass().addClass("error");
+                el_devices.html("");
+                devices_last = "";
             }
             setTimeout(is_alive, TIMEOUT_POLL_DEVICES);
         });
