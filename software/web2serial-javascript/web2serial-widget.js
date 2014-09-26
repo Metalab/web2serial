@@ -29,7 +29,7 @@ var defaultOptions = {
     hideUndefinedDevices: false,
 
     // Baudrate
-    baudrate: 11400,
+    baudrate: 9600,
 
     // Event handlers
     onopen: function(socket) { console.log("web2serial-widget: onopen(..)", socket); },
