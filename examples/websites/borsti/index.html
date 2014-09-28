@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <link rel="stylesheet" href="imports/bootstrap.min.css" type="text/css"/>
+    <link rel="stylesheet" href="borsti.css" type="text/css"/>
+
+    <script src="imports/jquery-2.1.1.min.js"></script>
+    <script src="imports/jquery-ui.js"></script>
+    <script src="imports/web2serial.js"></script>
+    <script src="borsti.js"></script>
+    <title>borsti demo</title>
+</head>
+
+<body>
+    <div class="container">
+        <div id="alert-not-running" class="alert alert-danger" role="alert">web2serial does not seem to be running; please start the Python daemon (<a href="http://github.com/metalab/web2serial">more infos</a>)</div>
+        <div id="alert-running" class="alert alert-success" role="alert">web2serial is up and running (<a href="http://github.com/metalab/web2serial">more infos</a>)</div>
+
+        <div id="devices">
+            <div class="row">
+                <div class="col-md-6">
+                  <h2>Select Borsti!</h2>
+                  <div id="devices-list"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="compose">
+            <form class="form-inline" role="form" id="inputform">
+                <button type="button" id="input-btn" onclick="socket.close()" class="btn btn-default">Close Connection</button>
+
+
+<br/>
+<br/>
+
+<div id="borsti-controls" style='display:none'>
+
+
+Sirene:
+<select onchange="sirene(this.value)" class="btn btn-default">
+ <option value=0>OFF</option>
+ <option value=1>ON</option>
+</select>
+
+
+
+<br/>
+
+Frontlight:
+<select onchange="frontlight(this.value)" class="btn btn-default">
+ <option value=1>ON</option>
+ <option value=0>OFF</option>
+</select>
+
+<br/>
+
+Backlight:
+<select onchange="backlight(this.value)" class="btn btn-default">
+ <option value=5>AUTO</option>
+ <option value=0>OFF</option>
+ <option value=4>Always ON</option>
+ <option value=3>Warnblink</option>
+ <option value=1>LEFT</option>
+ <option value=2>RIGHT</option>
+</select>
+
+
+<br/>
+           
+Flashlight:
+<select onchange="flashlight(this.value)" class="btn btn-default">
+ <option value=0>OFF</option>
+ <option value=1>BLINK</option>
+ <option value=2>Always ON</option>
+</select>
+
+
+<br/>
+
+Motortimeout:
+<select onchange="motortimeout(this.value)" class="btn btn-default">
+ <option value=1>ON</option>
+ <option value=0>OFF</option>
+</select>
+ 
+
+<br/>
+
+<table align=center border=0 cellspacing=10>
+<tr>
+<td align=center >LEFT<td/>
+<td align=center >RIGHT<td/>
+</tr>
+<tr>
+<td align=center ><div id="slider1_display">0</div><td/>
+<td align=center ><div id="slider2_display">0</div><td/>
+</tr>
+<tr>
+<td align=center ><div id="slider1" tabindex=1></div><td/>
+<td align=center ><div id="slider2" tabindex=2></div><td/>
+</tr>
+</table>
+
+
+
+</div>
+
+            </form>
+        </div>
+
+        <div style="visibility:hidden" id="messages"></div>
+    </div>
+</body>
+</html>
