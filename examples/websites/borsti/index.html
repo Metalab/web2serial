@@ -6,13 +6,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
     <link rel="stylesheet" href="imports/bootstrap.min.css" type="text/css"/>
-    <link rel="stylesheet" href="borsti.css" type="text/css"/>
+    <link rel="stylesheet" href="imports/jquery-ui.css" type="text/css"/>
+    <link rel="stylesheet" href="files/borsti.css" type="text/css"/>
 
     <script src="imports/jquery-2.1.1.min.js"></script>
     <script src="imports/jquery-ui.js"></script>
     <script src="imports/web2serial.js"></script>
-    <script src="borsti.js"></script>
-    <title>borsti demo</title>
+    <script src="files/borsti.js"></script>
+    <title>Borsti demo</title>
 </head>
 
 <body>
@@ -23,27 +24,40 @@
         <div id="devices">
             <div class="row">
                 <div class="col-md-6">
-                  <h2>Select Borsti!</h2>
+                  <h2>Choose your Borsti!</h2>
                   <div id="devices-list"></div>
                 </div>
             </div>
         </div>
 
-        <div id="compose">
+        <div id="compose" style='display:none'>
             <form class="form-inline" role="form" id="inputform">
-                <button type="button" id="input-btn" onclick="socket.close()" class="btn btn-default">Close Connection</button>
+               
 
+
+
+
+Your Borsti <span id="firmware_id"></span> is now connected 
+
+<br/>
+
+
+ <button type="button" id="input-btn" onclick="socket.close()" class="btn btn-default">Close Connection</button>
 
 <br/>
 <br/>
 
-<div id="borsti-controls" style='display:none'>
+
+
+
+
 
 
 Sirene:
-<select onchange="sirene(this.value)" class="btn btn-default">
- <option value=0>OFF</option>
+<select id="sirene_select" onchange="set_sirene(this.value)" class="btn btn-default" disabled=true>
  <option value=1>ON</option>
+ <option value=0>OFF</option>
+
 </select>
 
 
@@ -51,7 +65,7 @@ Sirene:
 <br/>
 
 Frontlight:
-<select onchange="frontlight(this.value)" class="btn btn-default">
+<select id="frontlight_select" onchange="set_frontlight(this.value)" class="btn btn-default" disabled=true>
  <option value=1>ON</option>
  <option value=0>OFF</option>
 </select>
@@ -59,7 +73,7 @@ Frontlight:
 <br/>
 
 Backlight:
-<select onchange="backlight(this.value)" class="btn btn-default">
+<select id="backlight_select" onchange="set_backlight(this.value)" class="btn btn-default" disabled=true>
  <option value=5>AUTO</option>
  <option value=0>OFF</option>
  <option value=4>Always ON</option>
@@ -72,7 +86,7 @@ Backlight:
 <br/>
            
 Flashlight:
-<select onchange="flashlight(this.value)" class="btn btn-default">
+<select id="flashlight_select" onchange="set_flashlight(this.value)" class="btn btn-default" disabled=true> 
  <option value=0>OFF</option>
  <option value=1>BLINK</option>
  <option value=2>Always ON</option>
@@ -82,7 +96,7 @@ Flashlight:
 <br/>
 
 Motortimeout:
-<select onchange="motortimeout(this.value)" class="btn btn-default">
+<select id="motortimeout_select"  onchange="set_motortimeout(this.value)" class="btn btn-default" disabled=true>
  <option value=1>ON</option>
  <option value=0>OFF</option>
 </select>
@@ -90,7 +104,7 @@ Motortimeout:
 
 <br/>
 
-<table align=center border=0 cellspacing=10>
+<table border=0 cellspacing=10>
 <tr>
 <td align=center >LEFT<td/>
 <td align=center >RIGHT<td/>
@@ -100,14 +114,14 @@ Motortimeout:
 <td align=center ><div id="slider2_display">0</div><td/>
 </tr>
 <tr>
-<td align=center ><div id="slider1" tabindex=1></div><td/>
-<td align=center ><div id="slider2" tabindex=2></div><td/>
+<td align=center ><div id="slider1" tabindex=1 ></div><td/>
+<td align=center ><div id="slider2" tabindex=2 ></div><td/>
 </tr>
 </table>
 
 
 
-</div>
+
 
             </form>
         </div>

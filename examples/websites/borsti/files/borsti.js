@@ -33,10 +33,12 @@ function is_alive() {
     // Check whether web2serial-core is running
     web2serial.is_alive(function(alive) {
         if (alive) {
+            $("#alert-not-running").hide();
             $("#alert-running").show();
             refresh_devices();
         } else {
             $("#alert-not-running").show();
+            $("#alert-running").hide();
         }
         setTimeout(is_alive, 500);
     });    
@@ -52,7 +54,11 @@ function refresh_devices() {
         // Update list of devices
         $("#devices-list").html("");
         for (var i=0; i<device_list.length; i++) {
-            $("#devices-list").append("<div class='device'><button type='button' id='device-" + device_list[i].hash + "' class='btn btn-default' onclick=\"connect('" + device_list[i].hash + "')\" title='click to connect'>" + device_list[i].device + " (" + device_list[i].desc + ", " + device_list[i].hwinfo + ")</button></div>");
+
+            if(device_list[i].device.indexOf("Borsti") > -1)
+            {
+             $("#devices-list").append("<div class='device'><button type='button' id='device-" + device_list[i].hash + "' class='btn btn-default' onclick=\"connect('" + device_list[i].hash + "')\" title='click to connect'>" + device_list[i].device + " (" + device_list[i].desc + ", " + device_list[i].hwinfo + ")</button></div>");
+            }
         }
     }, false);
 }
@@ -76,8 +82,8 @@ function connect(device_hash) {
         // Connection to serial device has been successfully established
         updateui_connection_established(this.device, this.baudrate);
 
-    // enable bluetooth contorl on borsti
-    socket.send("MO1\x0a");
+        // enable bluetooth control on borsti
+        socket.send("MO1\x0a");
 
 
 
@@ -130,7 +136,11 @@ function updateui_connection_established(device, baudrate) {
     $("#input").select();
 
     // borsti control panel show
-    $("#borsti-controls").show();
+    $("#compose").show();
+
+
+    setup_controls();
+
 
 
 }
@@ -147,14 +157,34 @@ function updateui_connection_closed(device) {
 
 
     // borsti control panel  hide 
-    $("#borsti-controls").hide();
+    $("#compose").hide();
 
 }
 
 
 
 
-function drive(val) {
+
+
+
+function set_sirene_value()
+{
+  socket.send("BE?\n");
+  socket.onmessage = function(msg){
+    var m = msg.split("\n")[0];
+    alert(m);
+    
+
+    socket.onmessage = null;
+  };
+
+}
+
+
+
+
+
+function set_drive(val) {
 /*SPhhhh Setzen der Motorgeschwindigkeiten, wobei „hhhh“ für die Geschwindigkeitswerte in 
 Hexadezimal steht
 Die ersten beiden Stellen steuern die Geschwindigkeit des linken Motors, die folgenden 
@@ -167,7 +197,6 @@ Beispiel für langsame Geradeausfahrt: SP8080
 
 
 
-//TODO slider
 
 socket.send("SP"+ val + "\n");
 
@@ -175,7 +204,7 @@ socket.send("SP"+ val + "\n");
 
 
 
-function sirene(val){
+function set_sirene(val){
 /*
 BEn Setzen der Sirene, wobei „n“ für den Status in Dezimal steht
 0: Abgeschaltet (default)
@@ -185,7 +214,7 @@ BEn Setzen der Sirene, wobei „n“ für den Status in Dezimal steht
 socket.send("BE"+ val + "\n");
 }
 
-function backlight(val){
+function set_backlight(val){
 /*
 REn Setzen der Rücklichter, wobei „n“ für den Status in Dezimal steht
 0: Abgeschaltet
@@ -202,7 +231,7 @@ socket.send("RE"+ val + "\n");
 }
 
 
-function frontlight(val) {
+function set_frontlight(val) {
 /*
 FRn Setzen des Frontlichtes, wobei „n“ für den Status in Dezimal steht
 0: Abgeschaltet
@@ -213,7 +242,7 @@ socket.send("FR"+ val + "\n");
 }
 
 
-function flashlight(val){
+function set_flashlight(val){
 /*
 FLn Setzen des Blitzlichtes, wobei „n“ für den Status in Dezimal steht
 0: Abgeschaltet (default)
@@ -228,7 +257,7 @@ socket.send("FL"+ val + "\n");
 
 
 
-function motortimeout(val){
+function set_motortimeout(val){
 /*
 TOn Setzen des Motortimeouts, wobei „n“ für den Status in Dezimal steht
 0: Inaktiv
@@ -239,6 +268,24 @@ socket.send("TO"+ val + "\n");
 
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -259,7 +306,7 @@ if(v2.length < 2) v2 = "0" + v2;
 var hex=v1+""+ v2;
 
 
-drive(hex.toUpperCase());
+set_drive(hex.toUpperCase());
 
 
 }
@@ -270,4 +317,97 @@ current_slider = $(ui.handle).parent().attr("id");
 $("#"+current_slider+"_display").html(ui.value);
 
 }
+
+
+
+
+
+
+//  sorry for the mess below.. i was in a hurry..
+
+
+
+function setup_controls()
+{
+
+
+  //firmware version string
+  socket.send("VE?\n");
+  socket.onmessage = function(msg){
+
+    var fw = msg.split("\n")[0];
+    $("#firmware_id").html("(FW: " + fw + ")");
+
+
+
+    // sirene
+    socket.send("BE?\n");
+
+    socket.onmessage = function(msg){
+     var m = msg.split("\n")[0];
+     $("#sirene_select").val(m[0]);
+     $("#sirene_select").prop( "disabled", false );
+
+
+     // frontlight
+     socket.send("FR?\n");
+     socket.onmessage = function(msg){
+       var m = msg.split("\n")[0];
+       $("#frontlight_select").val(m[0]);
+       $("#frontlight_select").prop( "disabled", false );
+
+
+       // backlight
+       socket.send("RE?\n");
+       socket.onmessage = function(msg){
+        var m = msg.split("\n")[0];
+        $("#backlight_select").val(m[0]);
+        $("#backlight_select").prop( "disabled", false );
+
+        // flashlight
+        socket.send("FL?\n");
+        socket.onmessage = function(msg){
+         var m = msg.split("\n")[0];
+         $("#flashlight_select").val(m[0]);
+         $("#flashlight_select").prop( "disabled", false );
+
+         // motortimeout
+         socket.send("TO?\n");
+         socket.onmessage = function(msg){
+          var m = msg.split("\n")[0];
+          $("#motortimeout_select").val(m[0]);
+          $("#motortimeout_select").prop( "disabled", false );
+
+
+          // sliders!
+          socket.send("SP?\n");
+          socket.onmessage = function(msg){
+           var m = msg.split("\n")[0];
+        
+
+           var v1=parseInt(m.substr(0,2),16);
+           var v2=parseInt(m.substr(2,2),16);
+
+
+
+           $("#slider1").slider('value',v1);
+           $("#slider2").slider('value',v2);
+
+
+
+           // no more callbacks. dont call us. we will call you.
+           socket.onmessage = function(msg){};
+
+          }; // sliders
+         }; // motortimeout callback
+        }; // flashlight callback
+       }; // backlight callback
+     };  //frontlight callback
+   }; //sirene callback
+  };  // firmware version
+}
+
+
+
+
 
