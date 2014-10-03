@@ -47,7 +47,7 @@ function is_alive() {
             $("#alert-not-running").show();
         }
         setTimeout(is_alive, 500);
-    });    
+    });
 }
 
 // Refresh list of devices
@@ -67,13 +67,13 @@ function refresh_devices() {
         if (device_list.length == 1) {
             select_device(device_list[0].hash);
         }
-   }, true);
+   });
 }
 
 function upload() {
     buffer_response = "";
     $("#messages").html("");
-    
+
     // Create a Web2Serial WebSocket Connection
     socket = web2serial.open_connection(selected_device_hash, 9600);
 
@@ -105,7 +105,7 @@ function upload() {
     socket.onclose = function(event) {
         // Connection was closed
         updateui_connection_closed(this.device);
-    };    
+    };
 }
 
 function select_device(device_hash) {
