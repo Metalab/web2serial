@@ -60,6 +60,25 @@ connections = {
     # 'hash': web2SerialSocket
 }
 
+class ConnectionChecker(threading.Thread):
+    """
+    Checks if connections are still alive. If not, remove them.
+    """
+    def __init__(self):
+        super(ConnectionChecker, self).__init__()
+        self.alive = True
+
+    def run(self):
+        while self.alive:
+            for connection in connections:
+                logging.info("- %s", connections[connection])
+            sleep(1)
+        logging.info("connectionchecker over and out")
+
+    def stop(self):
+        logging.info("stop sent")
+        self.alive = False
+
 # Tornado Web Application Description
 class Application(tornado.web.Application):
     def __init__(self):
@@ -233,31 +252,27 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
                     logging.info("message from serial to websocket: %s (len=%s)" % (repr(message), len(message)))
                     self.write_message(json.dumps(message, encoding="raw_unicode_escape"))
 
-            except serial.SerialException as e:
-                logging.error("%s", str(e))
-                # message_for_websocket = { "error": str(e) }
-                # if self.alive:
-                #    self.write_message(json.dumps(message_for_websocket))
-                self.close()
-                raise
-
-
-            except TypeError as e:
-                logging.error('%s' % (e,))
-                message_for_websocket = { "error": str(e) }
-                if self.alive:
-                    self.write_message(json.dumps(message_for_websocket))
-                self.close()
-                raise
-
-            except Exception as e:
+#            except serial.SerialException, e:
+#            except TypeError, e:
+            except:
                 # probably got disconnected
-                logging.error('%s' % (e,))
-                message_for_websocket = { "error": str(e) }
-                if self.alive:
+                err = sys.exc_info()[0]
+                logging.warn(err)
+                message_for_websocket = { "error": err }
+
+                # Try to send error to client js
+                try:
                     self.write_message(json.dumps(message_for_websocket))
-                self.close()
-                raise
+                except:
+                    pass
+
+                # Try to close websocket connection
+                try:
+                    self.close()
+                except:
+                    logging.warn(sys.exc_info()[0])
+
+                break
 
         self.alive = False
         logging.debug('reader thread terminated')
@@ -273,10 +288,20 @@ def start(port):
     logging.info("Com ports: %s" % get_com_ports())
     logging.info("Listening on http://0.0.0.0:%s" % port)
 
+    checker = ConnectionChecker()
+    checker.start()
+
     # Start of tornado web application, and ioloop blocking method
     app = Application()
     app.listen(port)
-    tornado.ioloop.IOLoop.instance().start()
+
+    try:
+        tornado.ioloop.IOLoop.instance().start()
+    except:
+        logging.warn(sys.exc_info()[0])
+
+    checker.stop()
+    logging.info("bye")
 
 
 # If run from command line:
