@@ -8,7 +8,7 @@ web2serial.py
     https://github.com/Metalab/web2serial
 
  Developed in cooperation of
- 
+
      Hackerspaceshop (hackerspaceshop.com)
      Bits Working (bitsworking.com)
      Community at Metalab Hackerspace Vienna (metalab.at)
@@ -48,7 +48,8 @@ import serial.tools.list_ports
 # Port for the web interface
 PORT_WEB = 54321
 
-SERIAL_SEND_TIMEOUT = 0.001
+SERIAL_SEND_TIMEOUT = 0.001  # Todo: better name (sleep() after sending a message)
+SERIAL_READWRITE_TIMEOUT = 1000
 
 # Length of the device id hash
 DEVICE_ID_HASH_LENGTH = 8
@@ -91,7 +92,9 @@ def open_serial_device_by_hash(hash, baudrate):
     for _hash, _deviceid, _desc, _hwid in get_com_ports():
         if _hash == hash:
             logging.info("serial device found for hash: %s" % _deviceid)
-            ser = serial.Serial(_deviceid, int(baudrate))
+            ser = serial.Serial(_deviceid, int(baudrate),
+                timeout=SERIAL_READWRITE_TIMEOUT,
+                writeTimeout=SERIAL_READWRITE_TIMEOUT)
             return ser
     raise LookupError("serial device not found for hash '%s'" % hash)
 
@@ -132,8 +135,8 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         return True
 
     def open(self, hash, baudrate):
-        """ 
-        Websocket initiated a connection. Open serial device with baudrate and start reader thread. 
+        """
+        Websocket initiated a connection. Open serial device with baudrate and start reader thread.
         """
         logging.info("Opening serial socket (hash=%s, baudrate=%s)" % (hash, baudrate))
         try:
@@ -146,7 +149,7 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
             self.close()
             return
 
-        # Start the thread which reads for serial input 
+        # Start the thread which reads for serial input
         self.alive = True
         self.thread_read = threading.Thread(target=self.reader)
         self.thread_read.setDaemon(True)
@@ -154,7 +157,7 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         self.thread_read.start()
 
     def on_message(self, message):
-        """ 
+        """
         JSON message from the websocket is unpacked, and the byte message sent to the serial connection.
         """
         logging.info("msg from websocket: %s (len=%s)" % (repr(message), len(message)))
@@ -222,7 +225,7 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
                     self.write_message(json.dumps(message_for_websocket))
                 # self.close()
                 raise
-                
+
         self.alive = False
         logging.debug('reader thread terminated')
 
@@ -232,7 +235,7 @@ def start(port):
     # Have tornado parse command line arguments
     tornado.options.parse_command_line()
 
-    # Initial output 
+    # Initial output
     logging.info("web2serial.py v%s" % __version__)
     logging.info("Com ports: %s" % get_com_ports())
     logging.info("Listening on http://0.0.0.0:%s" % port)
@@ -243,7 +246,7 @@ def start(port):
     tornado.ioloop.IOLoop.instance().start()
 
 
-# If run from command line: 
+# If run from command line:
 if __name__ == '__main__':
     usage = """usage: %prog [options] arg
 
