@@ -1,0 +1,1 @@
+/home/wizard23/Dropbox/projects2014/MagicShifter3/git/web2serial/software/web2serial-javascript/web2serial.js
