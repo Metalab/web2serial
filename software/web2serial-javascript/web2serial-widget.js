@@ -25,6 +25,12 @@
  *             widget = new Web2SerialWidget(yourDivelementId, widgetOptions);
  *         };
  *
+ *     widget reference
+ *
+ *         widget.send(data) ... send bytes to serial device
+ *         widget.close() ...... close socket
+ *         widget.setBaudTate(baudrate)
+ *
  *     widgetOptions:
  *
          var widgetOptions = {
@@ -104,6 +110,22 @@ var Web2SerialWidget = function(elementId, userOptions) {
     // Update UI and start web2serial interaction with checking if core is running (is_alive())
     set_state(STATE_DISCONNECTED);
     is_alive();
+
+    this.send = function(data) {
+        if (this.socket) {
+            this.socket.send(data);
+        } else {
+            console.log("error: socket not available to send data");
+        }
+    }
+
+    this.close = function() {
+        if (this.socket) {
+            this.socket.close();
+        } else {
+            console.log("error: socket already closed");
+        }
+    }
 
     // setBaudRate(baudrate) changes the baudrate. If a serial device is connected,
     // the connection will be closed and a new connection with the new baudrate
@@ -208,6 +230,7 @@ var Web2SerialWidget = function(elementId, userOptions) {
             el_devices.find("input").prop('checked', false);
 
             options.onclose(event);
+            this.socket = undefined;
         };
 
         this.socket.onerror = function(event) {
