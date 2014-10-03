@@ -95,6 +95,7 @@ var Web2SerialSocket = function(device_hash, baudrate) {
             code = 1000;
         }
         this.socket.close(code, reason);
+        this.socket = undefined;
     }
 
     // internals
@@ -140,6 +141,16 @@ var Web2SerialSocket = function(device_hash, baudrate) {
         // console.log(event);
         parent.onclose(event);
     };
+
+    var ping = function() {
+        console.log("pinging");
+        if (parent.socket) {
+            parent.socket.send(JSON.stringify({ "cmd": "ping" }));
+            setTimeout(ping, 1000);
+        }
+    }
+
+    setTimeout(ping, 1000);
 }
 
 // web2serial API

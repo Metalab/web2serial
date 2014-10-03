@@ -59,6 +59,7 @@ var VERSION = "1.1";
 
 // Cache of found serial devices
 var devices;
+var connections = new Array();
 
 // A Device represents an attached serial device on the client
 var Device = function(hash, device, desc, hwinfo) {
@@ -94,6 +95,7 @@ var Web2SerialSocket = function(device_hash, baudrate) {
             code = 1000;
         }
         this.socket.close(code, reason);
+        this.socket = undefined;
     }
 
     // internals
@@ -139,6 +141,16 @@ var Web2SerialSocket = function(device_hash, baudrate) {
         // console.log(event);
         parent.onclose(event);
     };
+
+    var ping = function() {
+        console.log("pinging");
+        if (parent.socket) {
+            parent.socket.send(JSON.stringify({ "cmd": "ping" }));
+            setTimeout(ping, 1000);
+        }
+    }
+
+    setTimeout(ping, 1000);
 }
 
 // web2serial API
@@ -164,6 +176,8 @@ var web2serial = {
      *     device_exclude_filter`: `false`, or regex which excludes the device if matched
      */
     get_devices: function(callback, device_include_filter, device_exclude_filter) {
+//        console.log("get_devices", device_include_filter, device_exclude_filter);
+
         $.get("http://localhost:54321/devices", function( data ) {
             console.log(data);
             devices = new Array();
@@ -181,8 +195,8 @@ var web2serial = {
                 }
                 if (device_exclude_filter) {
                     if (_devices[i][1].match(device_exclude_filter) ||
-                        !_devices[i][2].match(device_exclude_filter) ||
-                        !_devices[i][3].match(device_exclude_filter)) {
+                        _devices[i][2].match(device_exclude_filter) ||
+                        _devices[i][3].match(device_exclude_filter)) {
                         // We have a filter for the excludes
                         continue;
                     }
@@ -196,7 +210,9 @@ var web2serial = {
     },
 
     open_connection: function(device_hash, baudrate) {
-        return new Web2SerialSocket(device_hash, baudrate);
+        var socket = new Web2SerialSocket(device_hash, baudrate);
+        connections.push(socket);
+        return socket;
     },
 
     device_by_hash: function(device_hash) {
@@ -210,3 +226,10 @@ var web2serial = {
         widgetize(elementId, options);
     }
 }
+
+// Unload handler to close all connections
+$( window ).unload(function() {
+    for (var i=0; i<connections.length; i++) {
+        connections[i].close();
+    }
+});

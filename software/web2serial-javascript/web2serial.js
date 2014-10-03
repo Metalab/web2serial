@@ -145,11 +145,11 @@ var Web2SerialSocket = function(device_hash, baudrate) {
     var ping = function() {
         if (parent.socket) {
             parent.socket.send(JSON.stringify({ "cmd": "ping" }));
-            setTimeout(ping, 1000);
+            setTimeout(ping, 2000);
         }
     }
 
-    setTimeout(ping, 1000);
+    setTimeout(ping, 2000);
 }
 
 // web2serial API

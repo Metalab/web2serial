@@ -25,15 +25,13 @@ __version__ = "0.3.1"
 import sys
 import os
 from optparse import OptionParser
-from pprint import pprint
-from time import sleep
+from time import sleep, time
 
 import logging
-import os.path
-import uuid
 import json
 import threading
 import hashlib
+import traceback
 
 import tornado.escape
 import tornado.ioloop
@@ -51,15 +49,16 @@ PORT_WEB = 54321
 SERIAL_SEND_TIMEOUT = 0.001  # Todo: better name (sleep() after sending a message)
 SERIAL_READWRITE_TIMEOUT = 0
 
+CLOSE_IF_NO_PING_SINCE = 5  # Seconds
+
+
 # Length of the device id hash
 DEVICE_ID_HASH_LENGTH = 8
 
 # Cache for last received ping (global - does not associate session with pings)
 last_ping = None
-connections = {
-    # 'hash': web2SerialSocket
-}
 
+checker = None
 class ConnectionChecker(threading.Thread):
     """
     Checks if connections are still alive. If not, remove them.
@@ -67,17 +66,39 @@ class ConnectionChecker(threading.Thread):
     def __init__(self):
         super(ConnectionChecker, self).__init__()
         self.alive = True
+        self.connections = {
+            # 'hash': web2SerialSocket
+        }
 
     def run(self):
         while self.alive:
-            for connection in connections:
-                logging.info("- %s", connections[connection])
+            now = time()
+            for connection in self.connections.keys():
+                if now - self.connections[connection].ping_last_timestamp > CLOSE_IF_NO_PING_SINCE:
+                    # Cleanup time
+                    logging.warn("- force removing connection %s due to no ping", self.connections[connection])
+
+                    # Try to close
+                    try:
+                        self.connections[connection].close()
+                    except:
+                        logging.warn(traceback.format_exc())
+
+                    # Remove from list
+                    del self.connections[self.connections[connection].device_hash]
             sleep(1)
         logging.info("connectionchecker over and out")
 
     def stop(self):
         logging.info("stop sent")
         self.alive = False
+
+    def addConnection(self, websocketHandler):
+        self.connections[websocketHandler.device_hash] = websocketHandler
+
+    def removeConnection(self, websocketHandler):
+        if websocketHandler.device_hash in self.connections:
+            del self.connections[websocketHandler.device_hash]
 
 # Tornado Web Application Description
 class Application(tornado.web.Application):
@@ -155,6 +176,7 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
     alive = True
     ser = None
     device_hash = None
+    ping_last_timestamp = 0  # timestamp (ms epoch) of last ping from js client
 
     def check_origin(self, origin):
         return True
@@ -163,12 +185,13 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         """
         Websocket initiated a connection. Open serial device with baudrate and start reader thread.
         """
-        global connections
+        global checker
         logging.info("Opening serial socket (hash=%s, baudrate=%s)" % (hash, baudrate))
         self.device_hash = hash
+        self.ping_last_timestamp = time()
 
         # Check if serial device is already opened
-        if hash in connections:
+        if hash in checker.connections:
             err = "Device '%s' already opened" % hash
             logging.error(err)
             self.write_message(json.dumps({ "error": str(err) }))
@@ -176,13 +199,15 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
             return
 
         try:
-            self.ser = connections[hash] = open_serial_device_by_hash(hash, baudrate)
-            connections[hash] = self.ser
+            self.ser = open_serial_device_by_hash(hash, baudrate)
+            checker.addConnection(self)
             logging.info("Serial device successfullyh opened (hash=%s, baudrate=%s)" % (hash, baudrate))
 
-        except Exception as e:
-            logging.exception(e)
-            message_for_websocket = { "error": str(e) }
+        except:
+            err = traceback.format_exc()
+            err_short = sys.exc_info()[0]
+            logging.error(err)
+            message_for_websocket = { "error": err_short }
             self.write_message(json.dumps(message_for_websocket))
             self.close()
             return
@@ -202,32 +227,38 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
 
         # Unpack
         j = json.loads(message)
-        data = bytearray(j["msg"], "raw_unicode_escape");
-        logging.info("web -> serial: %s (len=%s)" % (repr(data), len(data)))
+        if "cmd" in j:
+            if j["cmd"] == "ping":
+                self.ping_last_timestamp = time()
 
-        # Send data to serial
-        try:
-            self.ser.write(data)
-            sleep(SERIAL_SEND_TIMEOUT)
-        except Exception as e:
-            # probably got disconnected
-            logging.error(e)
-            message_for_websocket = { "error": repr(e) }
-            self.write_message(json.dumps(message_for_websocket))
-            # self.close()
-            raise
+        if "msg" in j:
+            data = bytearray(j["msg"], "raw_unicode_escape");
+            logging.info("web -> serial: %s (len=%s)" % (repr(data), len(data)))
+
+            # Send data to serial
+            try:
+                self.ser.write(data)
+                sleep(SERIAL_SEND_TIMEOUT)
+            except:
+                # probably got disconnected
+                err = traceback.format_exc()
+                err_short = sys.exc_info()[0]
+                logging.error(err)
+                message_for_websocket = { "error": err_short }
+                self.write_message(json.dumps(message_for_websocket))
+                self.close()
+                raise
 
     def on_close(self):
         """ Close serial and quit reader thread """
-        global connections
         logging.info("Closing serial connection...")
         self.alive = False
 
         if self.ser is not None:
             self.ser.close()
 
-        if self.device_hash in connections:
-            del connections[self.device_hash]
+        global connections
+        checker.removeConnection(self)
 
         logging.info("Serial closed, waiting for reader thread to quit...")
         self.thread_read.join()
@@ -256,9 +287,10 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
 #            except TypeError, e:
             except:
                 # probably got disconnected
-                err = sys.exc_info()[0]
+                err = traceback.format_exc()
+                err_short = sys.exc_info()[0]
                 logging.warn(err)
-                message_for_websocket = { "error": err }
+                message_for_websocket = { "error": err_short }
 
                 # Try to send error to client js
                 try:
@@ -270,7 +302,7 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
                 try:
                     self.close()
                 except:
-                    logging.warn(sys.exc_info()[0])
+                    logging.warn(traceback.format_exc())
 
                 break
 
@@ -288,6 +320,7 @@ def start(port):
     logging.info("Com ports: %s" % get_com_ports())
     logging.info("Listening on http://0.0.0.0:%s" % port)
 
+    global checker
     checker = ConnectionChecker()
     checker.start()
 
@@ -298,7 +331,7 @@ def start(port):
     try:
         tornado.ioloop.IOLoop.instance().start()
     except:
-        logging.warn(sys.exc_info()[0])
+        logging.warn(traceback.format_exc())
 
     checker.stop()
     logging.info("bye")
