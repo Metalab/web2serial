@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style type="text/css">
+            html, body { height: 100%; margin: 0; padding: 20px;}
+
+            /* Widget Styles */
+            .error { border: 1px solid red !important; }
+            .success { border: 1px solid green !important; }
+            .connected { border: 1px solid green !important; }
+            .disconnected { border: 1px solid #2F34DE !important; }
+
+            #widget {
+                border:1px solid grey;
+                padding:10px 20px;
+                margin:20px 0px;
+            }
+
+            #widget div {
+                margin:10px 0px;
+                padding:10px;
+                border:1px solid grey;
+            }
+        </style>
+        <script type="text/javascript" src="imports/jquery-2.1.1.min.js"></script>
+        <script type="text/javascript" src="imports/web2serial.js"></script>
+        <script type="text/javascript" src="imports/web2serial-widget.js"></script>
+        <script type="text/javascript" src="magicshifter.js"></script>
+        <script type="text/javascript">
+        var widget;
+        var buffer_response = "";
+
+        var selected_file_url = false;
+
+        
+
+        $(function() {
+            widget = new Web2SerialWidget("widget", {
+                autoConnect: true,
+                // filters out
+                deviceIncludeFilter: "2341:8036",
+                baudrate: 9600,
+                onopen: function(socket) {
+                    // Connection to serial device is established. You can send data either
+                    // here with `socket.send(...)`, or via `widget.socket.send(...)`
+                    $("#btn-send").removeAttr('disabled');
+                },
+                onclose: function(event) {
+                    // The connection has been closed
+                    $("#btn-send").attr('disabled', 'disabled');
+                },
+                onerror: function(event) {
+                    // Error event
+                    console.log(event);
+                },
+                onmessage: function(data) {
+                    buffer_response += data;
+                }
+            });
+
+            // Choose File input handler
+            document.getElementById("input-file").addEventListener("change", function(event) {
+                // Remember selected file
+                selected_file_url = URL.createObjectURL(event.target.files[0]);
+            });
+        });
+
+
+
+        function ping() {
+            widget.socket.send("MAGIC_PING");
+        }
+
+        function upload() {
+            buffer_response = "";
+    
+            magicUpload(parseInt($("#input-sector").val()), selected_file_url, widget.socket, function() {
+                // All done
+                console.log("<pre>" + buffer_response + "</pre>success");
+            });
+        }
+        </script>
+    </head>
+
+    <body>
+        <h1>MagicShifter Image Upload</h1>
+        <p>Select the serial port</p>
+        <p>Select a magicBitmap from your files</p>
+        <p>Select Sector (0: reserved, 0-127: images, 128-255 fonts)
+        <p>and click the upload button</p>
+
+        <div id="widget"></div>
+
+        <form class="form-inline" role="form" id="inputform">
+            <div>Sector: <input type="text" class="form-control" id="input-sector" placeholder="1 .. 127" value="1" style="width:50%;"></div>
+            <div style="margin-top:12px;"><input type="file" id="input-file" id="exampleInputFile" value="Choose File"></div>
+            <div style="margin-top:12px;"><button type="button" id="btn-send" onclick="upload()" class="btn btn-default" disabled>Upload</button></div>
+        </form>
+    </body>
+</html>

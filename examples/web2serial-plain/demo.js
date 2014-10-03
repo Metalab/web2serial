@@ -8,11 +8,9 @@
 
 // Web2SerialSocket
 var socket;
-var buffer_response;
 
-// ...
-var selected_device_hash = false;
-var selected_file_url = false;
+// Cache for last devices
+var _devices_last;
 
 // Stuff to do when website is loaded
 $(function() {
@@ -22,20 +20,8 @@ $(function() {
         return false;
     });
 
-    // Choose File input handler
-    document.getElementById("input-file").addEventListener("change", function(event) {
-        // Remember selected file
-        selected_file_url = URL.createObjectURL(event.target.files[0]);
-
-        // Enable upload?
-        if (selected_device_hash && selected_file_url) {
-            $("#input-upload").removeAttr("disabled");
-        }
-    });
-
     is_alive();
 });
-
 
 function is_alive() {
     // Check whether web2serial-core is running
@@ -46,7 +32,7 @@ function is_alive() {
         } else {
             $("#alert-not-running").show();
         }
-        setTimeout(is_alive, 500);
+        setTimeout(is_alive, 1000);
     });
 }
 
@@ -60,41 +46,27 @@ function refresh_devices() {
         // Update list of devices
         $("#devices-list").html("");
         for (var i=0; i<device_list.length; i++) {
-            $("#devices-list").append("<div class='device'><button type='button' id='device-" + device_list[i].hash + "' class='btn btn-default' onclick=\"select_device('" + device_list[i].hash + "')\" title='click to connect'>" + device_list[i].device + " (" + device_list[i].desc + ", " + device_list[i].hwinfo + ")</button></div>");
+            $("#devices-list").append("<div class='device'><button type='button' id='device-" + device_list[i].hash + "' class='btn btn-default' onclick=\"connect('" + device_list[i].hash + "')\" title='click to connect'>" + device_list[i].device + " (" + device_list[i].desc + ", " + device_list[i].hwinfo + ")</button></div>");
         }
-
-        // If only 1 then autoselect
-        if (device_list.length == 1) {
-            select_device(device_list[0].hash);
-        }
-   });
+    });
 }
 
-function upload() {
-    buffer_response = "";
-    $("#messages").html("");
+// Connect to a specific serial device
+function connect(device_hash) {
+    updateui_connect(device_hash);
 
     // Create a Web2Serial WebSocket Connection
-    socket = web2serial.open_connection(selected_device_hash, 9600);
+    socket = web2serial.open_connection(device_hash, $("#input-baudrate").val());
 
     // Set event handlers
     socket.onmessage = function(data) {
         // Handle incoming bytes from the serial device
-        buffer_response += data;
+        add_response(data);
     };
 
     socket.onopen = function(event) {
         // Connection to serial device has been successfully established
         updateui_connection_established(this.device, this.baudrate);
-
-        magicUpload(parseInt($("#input-sector").val()), selected_file_url, this, function() {
-            // All done
-            add_message("<div>Upload complete</div><pre>" + buffer_response + "</pre>", "success");
-            // add_response(buffer_response);
-            socket.close();
-        });
-
-        // socket.send("MAGIC_PING");
     };
 
     socket.onerror = function(event) {
@@ -108,15 +80,21 @@ function upload() {
     };
 }
 
-function select_device(device_hash) {
-    selected_device_hash = device_hash;
+// Send message from input field to the serial device
+function send() {
+    var msg = $("#input").val();
+    socket.send(msg);
+    add_message("sent: " + msg, "info");
+    $("#input").val("").select();
+}
 
-    $(".device button").each(function() { $(this).removeClass().addClass("btn btn-default"); });
-    $("#device-" + device_hash).removeClass().addClass("btn btn-success");
-
-    if (selected_device_hash && selected_file_url) {
-        $("#input-upload").removeAttr("disabled");
-    }
+// Send magic bytes to the serial device (magicshifter.net)
+function send_bytes() {
+    socket.send("MAGIC_UPLOAD"); // 12 bytes
+    socket.send("\xff"); // 1 byte
+    // socket.send("\x03"); // 1 byte
+    // socket.send("\xff"); // 1 byte
+    // socket.send("\xbb"); // 1 byte
 }
 
 // Helper to add messages to the html document
@@ -129,10 +107,18 @@ function add_response(str) {
 }
 
 // UI Update Helpers
+function updateui_connect(device_hash) {
+    $(".device button").each(function() { $(this).removeClass().addClass("btn btn-default"); });
+    $("#input").attr("disabled", "disabled");
+    $("#input-btn").attr("disabled", "disabled");
+}
+
 function updateui_connection_established(device, baudrate) {
-    add_message("starting upload", "success");
-    // $("#device-" + device.hash).removeClass().addClass("btn btn-success");
-    $("#input-sector").select();
+    add_message("opened: " + device.str + ", " + baudrate + " baud", "success");
+    $("#device-" + device.hash).removeClass().addClass("btn btn-success");
+    $("#input").removeAttr("disabled");
+    $("#input-btn").removeAttr("disabled");
+    $("#input").select();
 }
 
 function updateui_connection_error(device, error_string) {
@@ -143,11 +129,5 @@ function updateui_connection_error(device, error_string) {
 function updateui_connection_closed(device) {
     $("#input").attr("disabled", "disabled");
     $("#input-btn").attr("disabled", "disabled");
+    add_message("closed: " + device.str, "danger");
 }
-
-
-
-
-
-
-
