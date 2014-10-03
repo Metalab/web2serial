@@ -13,46 +13,58 @@
   <script src="web2serial-widget.js"></script>
 
 
-        <script type="text/javascript">
-        var ws1;
+
+
+  <script type="text/javascript">
+        var widget;
 
         $(function() {
-            web2serial.widget("widget", {
+            widget = new Web2SerialWidget("widget", {
                 autoConnect: true,
+                deviceExcludeFilter: "n/a",
                 baudrate: 9600,
-                onopen: function(device_hash, socket) {
+                onopen: function(socket) {
+                    // Connection to serial device is established. You can send data either
+                    // here with `socket.send(...)`, or via `widget.socket.send(...)`
+                    // $("#btn-send").removeAttr('disabled');
+
+
+
+                    //neu
+
                     console.log("OPEN!!");
-                    console.log(device_hash);
+                    //console.log(device_hash);
                     console.log(socket);
-                    ws1 = socket;
+                    //  ws1 = socket;
                     // socket2.send("HELLO");
 
 
                     $( "#slider1" ).slider( "option", { disabled: false } );
                     $( "#slider2" ).slider( "option", { disabled: false } );
 
+
+
+
                 },
                 onclose: function(event) {
+                    // The connection has been closed
                     $( "#slider1" ).slider( "option", { disabled: true } );
                     $( "#slider2" ).slider( "option", { disabled: true } );
-
-
                 },
                 onerror: function(event) {
+                    // Error event
                     console.log(event);
                 },
                 onmessage: function(data) {
+                    // Message from the serial device
                     console.log("> " + data);
-                },
-            });    
+                }
+            });
         });
 
-        function sendStuff() {
-            ws1.send("\xff\xaa\xfe");
-            ws1.close();
-            alert("Successfully sent the bytes");
-        }
         </script>
+
+
 
 
 </head>
@@ -147,7 +159,7 @@ function send_serial()
  
 
  console.log("Sending: " + serialstring);
-ws1.send(serialstring);
+ widget.socket.send(serialstring);
 
 }
 
