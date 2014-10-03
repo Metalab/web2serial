@@ -201,6 +201,7 @@ var web2serial = {
     open_connection: function(device_hash, baudrate) {
         var socket = new Web2SerialSocket(device_hash, baudrate);
         connections.push(socket);
+        return socket;
     },
 
     device_by_hash: function(device_hash) {
