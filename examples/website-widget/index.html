@@ -22,36 +22,46 @@
                 border:1px solid grey;
             }
         </style>
-        <script type="text/javascript" src="jquery-2.1.1.min.js"></script>
-        <script type="text/javascript" src="web2serial.js"></script>
-        <script type="text/javascript" src="web2serial-widget.js"></script>
+        <script type="text/javascript" src="imports/jquery-2.1.1.min.js"></script>
+        <script type="text/javascript" src="imports/web2serial.js"></script>
+        <script type="text/javascript" src="imports/web2serial-widget.js"></script>
         <script type="text/javascript">
-        var ws1;
+        var widget;
 
         $(function() {
-            var widget = new Web2SerialWidget("widget", {
+            widget = new Web2SerialWidget("widget", {
                 autoConnect: true,
                 baudrate: 9600,
-                onopen: function(device_hash, socket) {
-                    ws1 = socket;
+                onopen: function(socket) {
+                    // Connection to serial device is established. You can send data either
+                    // here with `socket.send(...)`, or via `widget.socket.send(...)`
                     $("#btn-send").removeAttr('disabled');
                 },
                 onclose: function(event) {
+                    // The connection has been closed
                     $("#btn-send").attr('disabled', 'disabled');
                 },
                 onerror: function(event) {
+                    // Error event
                     console.log(event);
                 },
                 onmessage: function(data) {
+                    // Message from the serial device
                     console.log("> " + data);
-                },
-            });    
+                }
+            });
         });
 
         function sendStuff() {
-            ws1.send("\xff\xaa\xfe");
-            ws1.close();
-            alert("Successfully sent the bytes");
+            widget.socket.send("\xff\xaa\xfe");
+            widget.socket.close();
+            alert("Successfully sent the 3 bytes to the serial device");
+        }
+
+        function setBR() {
+            var baudrate = prompt("Set Baudrate", $("#label-baudrate").html());
+            $("#label-baudrate").html(baudrate);
+            widget.setBaudRate(baudrate);
         }
         </script>
     </head>
@@ -63,5 +73,6 @@
         <div id="widget"></div>
 
         <button id="btn-send" onclick="sendStuff()" disabled>Send Stuff</button>
+        <button id="btn-send" onclick="setBR()">Change Baudrate (currently: <span id="label-baudrate">9600</span>)</button>
     </body>
 </html>
