@@ -49,7 +49,7 @@ import serial.tools.list_ports
 PORT_WEB = 54321
 
 SERIAL_SEND_TIMEOUT = 0.001  # Todo: better name (sleep() after sending a message)
-SERIAL_READWRITE_TIMEOUT = 1000
+SERIAL_READWRITE_TIMEOUT = 1
 
 # Length of the device id hash
 DEVICE_ID_HASH_LENGTH = 8
