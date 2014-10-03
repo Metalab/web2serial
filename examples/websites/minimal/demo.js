@@ -32,7 +32,7 @@ function is_alive() {
         } else {
             $("#alert-not-running").show();
         }
-        setTimeout(is_alive, 500);
+        setTimeout(is_alive, 10000);
     });
 }
 

@@ -59,6 +59,7 @@ var VERSION = "1.1";
 
 // Cache of found serial devices
 var devices;
+var connections = new Array();
 
 // A Device represents an attached serial device on the client
 var Device = function(hash, device, desc, hwinfo) {
@@ -198,7 +199,8 @@ var web2serial = {
     },
 
     open_connection: function(device_hash, baudrate) {
-        return new Web2SerialSocket(device_hash, baudrate);
+        var socket = new Web2SerialSocket(device_hash, baudrate);
+        connections.push(socket);
     },
 
     device_by_hash: function(device_hash) {
@@ -212,3 +214,10 @@ var web2serial = {
         widgetize(elementId, options);
     }
 }
+
+// Unload handler to close all connections
+$( window ).unload(function() {
+    for (var i=0; i<connections.length; i++) {
+        connections[i].close();
+    }
+});

@@ -20,7 +20,7 @@ License
 
 __author__ = "Chris Hager"
 __email__ = "chris@bitsworking.com"
-__version__ = "0.2"
+__version__ = "0.3.1"
 
 import sys
 import os
@@ -54,6 +54,11 @@ SERIAL_READWRITE_TIMEOUT = 1000
 # Length of the device id hash
 DEVICE_ID_HASH_LENGTH = 8
 
+# Cache for last received ping (global - does not associate session with pings)
+last_ping = None
+connections = {
+    # 'hash': web2SerialSocket
+}
 
 # Tornado Web Application Description
 class Application(tornado.web.Application):
@@ -130,6 +135,7 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
     """
     alive = True
     ser = None
+    device_hash = None
 
     def check_origin(self, origin):
         return True
@@ -138,10 +144,23 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
         """
         Websocket initiated a connection. Open serial device with baudrate and start reader thread.
         """
+        global connections
         logging.info("Opening serial socket (hash=%s, baudrate=%s)" % (hash, baudrate))
+        self.device_hash = hash
+
+        # Check if serial device is already opened
+        if hash in connections:
+            err = "Device '%s' already opened" % hash
+            logging.error(err)
+            self.write_message(json.dumps({ "error": str(err) }))
+            self.close()
+            return
+
         try:
-            self.ser = open_serial_device_by_hash(hash, baudrate)
+            self.ser = connections[hash] = open_serial_device_by_hash(hash, baudrate)
+            connections[hash] = self.ser
             logging.info("Serial device successfullyh opened (hash=%s, baudrate=%s)" % (hash, baudrate))
+
         except Exception as e:
             logging.exception(e)
             message_for_websocket = { "error": str(e) }
@@ -181,10 +200,16 @@ class SerSocketHandler(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         """ Close serial and quit reader thread """
+        global connections
         logging.info("Closing serial connection...")
         self.alive = False
+
         if self.ser is not None:
             self.ser.close()
+
+        if self.device_hash in connections:
+            del connections[self.device_hash]
+
         logging.info("Serial closed, waiting for reader thread to quit...")
         self.thread_read.join()
         logging.info("Serial closed, reader thread quit.")
