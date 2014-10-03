@@ -10,14 +10,48 @@
  *     Community at Metalab Hackerspace Vienna (metalab.at)
  *
  * License
- * 
+ *
  *     LGPLv3 (see `LICENSE`)
  *
  * Documentation
  *
  *     Take a look at the example implementation at
  *     https://github.com/Metalab/web2serial/blob/master/examples/websites-widget/minimal/index.html
+ *
+ *     Instantiate a widget like this:
+ *
+ *         var widget;
+ *         $(function() {
+ *             widget = new Web2SerialWidget(yourDivelementId, widgetOptions);
+ *         };
+ *
+ *     widgetOptions:
+ *
+         var widgetOptions = {
+            // Automatically connect if only 1 serial device is found
+            autoConnect: true,
+
+            // No whitelist
+            deviceIncludeFilter: null,
+
+            // Blacklist 'n/a' devices
+            deviceExcludeFilter: "n/a",
+
+            // Baudrate
+            baudrate: 9600,
+
+            // Event handlers
+            onopen: function(socket)  { console.log("widget: onopen(..)", socket); },
+            onclose: function(event)  { console.log("widget: onclose(..)", event); },
+            onerror: function(event)  { console.log("widget: onerror(..)", event); },
+            onmessage: function(data) { console.log("widget: onmessage(" + data + ")"); },
+        };
+
+ *    After the `onopen(socket)` callback you can use `widget.socket.send(data)` to send
+ *    data to the serial device, and `widget.socket.close()` to close the connection.
+ *
  */
+var VERSION = "1.1";
 
 var TIMEOUT_POLL_DEVICES = 1000;
 
@@ -25,8 +59,8 @@ var defaultOptions = {
     // Automatically connect if only 1 serial device is found
     autoConnect: true,
 
-    // Hide all devices with "n/a" as description
-    hideUndefinedDevices: false,
+    deviceIncludeFilter: null,
+    deviceExcludeFilter: null,
 
     // Baudrate
     baudrate: 9600,
@@ -94,10 +128,10 @@ var Web2SerialWidget = function(elementId, userOptions) {
         if (state == STATE_DISCONNECTED) {
             el_status.removeClass().addClass("disconnected");
         } else if (state == STATE_CONNECTED) {
-            el_status.removeClass().addClass("connected");        
+            el_status.removeClass().addClass("connected");
         } else if (state == STATE_ERROR) {
-            el_status.removeClass().addClass("error");        
-        } 
+            el_status.removeClass().addClass("error");
+        }
     }
 
     // Check whether web2serial-core.py is running on the client computer
@@ -147,9 +181,9 @@ var Web2SerialWidget = function(elementId, userOptions) {
             // If only one device, and autoConnect, then autoconnect... derp
             if (device_list.length == 1 && options.autoConnect) {
                 el_devices.find("#" + device_list[0].hash).prop('checked', true);
-                connect(device_list[0].hash);
+                parent.connect(device_list[0].hash);
             }
-        }, options.hideUndefinedDevices);
+        }, options.deviceIncludeFilter, options.deviceExcludeFilter);
     }
 
     // Establish a connection to a specific serial device
@@ -174,7 +208,7 @@ var Web2SerialWidget = function(elementId, userOptions) {
             el_devices.find("input").prop('checked', false);
 
             options.onclose(event);
-        };    
+        };
 
         this.socket.onerror = function(event) {
             set_state(STATE_ERROR);

@@ -31,6 +31,7 @@
         $(function() {
             widget = new Web2SerialWidget("widget", {
                 autoConnect: true,
+                deviceExcludeFilter: "n/a",
                 baudrate: 9600,
                 onopen: function(socket) {
                     // Connection to serial device is established. You can send data either
