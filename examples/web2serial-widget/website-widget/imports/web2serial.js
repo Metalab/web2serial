@@ -1,1 +1,0 @@
-../../../software/web2serial-javascript/web2serial.js
