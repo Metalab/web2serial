@@ -82,8 +82,7 @@ function connect(device_hash) {
         // Connection to serial device has been successfully established
         updateui_connection_established(this.device, this.baudrate);
 
-        // enable bluetooth control on borsti
-        socket.send("MO1\x0a");
+
 
 
 
@@ -123,16 +122,16 @@ function add_response(str) {
 // UI Update Helpers
 function updateui_connect(device_hash) {
     $(".device button").each(function() { $(this).removeClass().addClass("btn btn-default"); });
-    $("#input").attr("disabled", "disabled");
-    $("#input-btn").attr("disabled", "disabled");
+    //$("#input").attr("disabled", "disabled");
+    //$("#input-btn").attr("disabled", "disabled");
 
 }
 
 function updateui_connection_established(device, baudrate) {
     add_message("opened: " + device.str + ", " + baudrate + " baud", "success");
     $("#device-" + device.hash).removeClass().addClass("btn btn-success");
-    $("#input").removeAttr("disabled");
-    $("#input-btn").removeAttr("disabled");
+    //$("#input").removeAttr("disabled");
+    //$("#input-btn").removeAttr("disabled");
     $("#input").select();
 
     // borsti control panel show
@@ -280,6 +279,18 @@ socket.send("TO"+ val + "\n");
 
 
 
+function move(r,l)
+{
+  $("#slider1").slider('value',l);
+  $("#slider2").slider('value',r);
+
+  $("#slider1_display").html(l);
+  $("#slider2_display").html(r);
+
+}
+
+
+
 
 
 
@@ -300,10 +311,15 @@ eval(current_slider+"_value=ui.value;");
 v1 = $('#slider1').slider("option", "value").toString(16);
 if(v1.length < 2) v1 = "0" + v1;
 
+
+
+
 v2 = $('#slider2').slider("option", "value").toString(16);
 if(v2.length < 2) v2 = "0" + v2;
 
 var hex=v1+""+ v2;
+
+alert(hex);
 
 
 set_drive(hex.toUpperCase());
@@ -323,66 +339,115 @@ $("#"+current_slider+"_display").html(ui.value);
 
 
 
-//  sorry for the mess below.. i was in a hurry..
 
+var protocol_state="MO";
 
 
 function setup_controls()
 {
+ 
+//alert(protocol_state);
 
 
-  //firmware version string
-  socket.send("VE?\n");
-  socket.onmessage = function(msg){
+   switch(protocol_state)
+   {
 
-    var fw = msg.split("\n")[0];
-    $("#firmware_id").html("(FW: " + fw + ")");
+    
+   case "MO":
+
+      socket.onmessage = function(msg) {
+
+        // reurns MO1\\n ?!
+        // never mind, drop this
+
+         protocol_state="VE";
+         setup_controls();
+       };
+
+        // enable bluetooth control on borsti
+        socket.send("MO1\n");
+
+   break;
+
+    
+   case "VE":
+       socket.onmessage = function(msg) {
+         var fw = msg.split("\n")[0];
+         $("#firmware_id").html("(FW: " + fw + ")");
+         protocol_state="BE";
+         setup_controls();
+       };
+       socket.send("VE?\n");
+   break;
+
+
+   case "BE":
+     socket.onmessage = function(msg) {
+      var m = msg.split("\n")[0];
+      $("#sirene_select").val(m[0]);
+      protocol_state="FR";
+      setup_controls();
+     };
+      socket.send("BE?\n");
+   break;
 
 
 
-    // sirene
-    socket.send("BE?\n");
+   case "FR":
+     socket.onmessage = function(msg) {
+      var m = msg.split("\n")[0];
+      $("#frontlight_select").val(m[0]);
+      protocol_state="RE";
+      setup_controls();
+     };
+      socket.send("FR?\n");
 
-    socket.onmessage = function(msg){
+   break;
+
+
+
+   case "RE":
+     socket.onmessage = function(msg) {
+      var m = msg.split("\n")[0];
+      $("#backlight_select").val(m[0]);
+      protocol_state="FL";
+      setup_controls();
+
+     };
+      socket.send("RE?\n");
+   break;
+
+
+   case "FL":
+     socket.onmessage = function(msg) {
+      var m = msg.split("\n")[0];
+      $("#flashlight_select").val(m[0]);
+      protocol_state="TO";
+      setup_controls();
+
+     };
+      socket.send("FL?\n");
+   break;
+
+
+
+   case "TO":
+     socket.onmessage = function(msg) {
+      var m = msg.split("\n")[0];
+      $("#motortimeout_select").val(m[0]);
+      protocol_state="SP";
+      setup_controls();
+
+     };
+      socket.send("TO?\n");
+   break;
+
+
+
+case "SP":
+     socket.onmessage = function(msg) {
+    
      var m = msg.split("\n")[0];
-     $("#sirene_select").val(m[0]);
-     $("#sirene_select").prop( "disabled", false );
-
-
-     // frontlight
-     socket.send("FR?\n");
-     socket.onmessage = function(msg){
-       var m = msg.split("\n")[0];
-       $("#frontlight_select").val(m[0]);
-       $("#frontlight_select").prop( "disabled", false );
-
-
-       // backlight
-       socket.send("RE?\n");
-       socket.onmessage = function(msg){
-        var m = msg.split("\n")[0];
-        $("#backlight_select").val(m[0]);
-        $("#backlight_select").prop( "disabled", false );
-
-        // flashlight
-        socket.send("FL?\n");
-        socket.onmessage = function(msg){
-         var m = msg.split("\n")[0];
-         $("#flashlight_select").val(m[0]);
-         $("#flashlight_select").prop( "disabled", false );
-
-         // motortimeout
-         socket.send("TO?\n");
-         socket.onmessage = function(msg){
-          var m = msg.split("\n")[0];
-          $("#motortimeout_select").val(m[0]);
-          $("#motortimeout_select").prop( "disabled", false );
-
-
-          // sliders!
-          socket.send("SP?\n");
-          socket.onmessage = function(msg){
-           var m = msg.split("\n")[0];
         
 
            var v1=parseInt(m.substr(0,2),16);
@@ -390,21 +455,27 @@ function setup_controls()
 
 
 
-           $("#slider1").slider('value',v1);
-           $("#slider2").slider('value',v2);
+     //      $("#slider1").slider('value',v1);
+     //      $("#slider2").slider('value',v2);
 
 
+      socket.onmessage = function(msg) { 
+        var m = msg.split("\n")[0];
+        console.log("got something from websocket: " +m);
+      };
+      protocol_state=null;
 
-           // no more callbacks. dont call us. we will call you.
-           socket.onmessage = function(msg){};
+     };
+      socket.send("SP?\n");
+   break;
 
-          }; // sliders
-         }; // motortimeout callback
-        }; // flashlight callback
-       }; // backlight callback
-     };  //frontlight callback
-   }; //sirene callback
-  };  // firmware version
+
+    default:
+     console.log("protocolstate set to default");
+    break; 
+    }
+  
+
 }
 
 

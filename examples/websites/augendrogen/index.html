@@ -53,7 +53,10 @@
                 },
                 onerror: function(event) {
                     // Error event
-                    console.log(event);
+                    console.log("ERROR:" + event.error);
+
+
+
                 },
                 onmessage: function(data) {
                     // Message from the serial device

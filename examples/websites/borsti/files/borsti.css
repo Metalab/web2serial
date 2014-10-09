@@ -62,3 +62,50 @@ background-repeat: no-repeat;
 background-position: center;
 
 }
+
+
+
+#movement_controls{
+ margin-top:20px;
+ clear:both;
+ 
+}
+
+button.controlbuttons {
+background-repeat: no-repeat;
+background-position: center;
+width:40px;
+height:40px;
+position:relative;
+margin:0;
+
+
+}
+
+#control_left {
+background-image: url(../files/left.png);
+top:40px;
+
+}
+
+
+#control_right {
+background-image: url(../files/right.png);
+top:40px;
+
+}
+
+
+#control_forward {
+background-image: url(../files/up.png);
+
+}
+
+
+#control_stop {
+background-image: url(../files/stop.png);
+top:50px;
+right:88px;
+
+}
+

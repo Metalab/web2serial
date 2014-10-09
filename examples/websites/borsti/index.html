@@ -54,7 +54,7 @@ Your Borsti <span id="firmware_id"></span> is now connected
 
 
 Sirene:
-<select id="sirene_select" onchange="set_sirene(this.value)" class="btn btn-default" disabled=true>
+<select id="sirene_select" onchange="set_sirene(this.value)" class="btn btn-default" >
  <option value=1>ON</option>
  <option value=0>OFF</option>
 
@@ -65,7 +65,7 @@ Sirene:
 <br/>
 
 Frontlight:
-<select id="frontlight_select" onchange="set_frontlight(this.value)" class="btn btn-default" disabled=true>
+<select id="frontlight_select" onchange="set_frontlight(this.value)" class="btn btn-default" >
  <option value=1>ON</option>
  <option value=0>OFF</option>
 </select>
@@ -73,7 +73,7 @@ Frontlight:
 <br/>
 
 Backlight:
-<select id="backlight_select" onchange="set_backlight(this.value)" class="btn btn-default" disabled=true>
+<select id="backlight_select" onchange="set_backlight(this.value)" class="btn btn-default" >
  <option value=5>AUTO</option>
  <option value=0>OFF</option>
  <option value=4>Always ON</option>
@@ -86,7 +86,7 @@ Backlight:
 <br/>
            
 Flashlight:
-<select id="flashlight_select" onchange="set_flashlight(this.value)" class="btn btn-default" disabled=true> 
+<select id="flashlight_select" onchange="set_flashlight(this.value)" class="btn btn-default" > 
  <option value=0>OFF</option>
  <option value=1>BLINK</option>
  <option value=2>Always ON</option>
@@ -96,7 +96,7 @@ Flashlight:
 <br/>
 
 Motortimeout:
-<select id="motortimeout_select"  onchange="set_motortimeout(this.value)" class="btn btn-default" disabled=true>
+<select id="motortimeout_select"  onchange="set_motortimeout(this.value)" class="btn btn-default" >
  <option value=1>ON</option>
  <option value=0>OFF</option>
 </select>
@@ -118,6 +118,17 @@ Motortimeout:
 <td align=center ><div id="slider2" tabindex=2 ></div><td/>
 </tr>
 </table>
+
+
+
+<div id="movement_controls">
+<button type="button" id="control_left" onclick="move(0,255);" class="btn btn-default controlbuttons"></button>
+<button type="button" id="control_forward" onclick="move(200,200);" class="btn btn-default controlbuttons"></button>
+<button type="button" id="control_right" onclick="move(255,0);" class="btn btn-default controlbuttons"></button>
+<button type="button" id="control_stop" onclick="move(0,0);" class="btn btn-default controlbuttons"></button>
+</div>
+
+
 
 
 
